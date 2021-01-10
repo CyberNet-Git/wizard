@@ -340,8 +340,8 @@ floor2 = [0]
 floor3 = [0]
 
 class Service:
-    def __init__(sprite_size):
-        full = true
+    def __init__(self, sprite_size):
+        full = True
 
         self.sp = SpriteProvider(sprite_size)
 
