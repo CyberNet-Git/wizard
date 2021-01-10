@@ -13,7 +13,6 @@ ALLY_TEXTURE = os.path.join("texture", "ally")
 DEFAULT_SPRITE_SIZE = 32
 STATIC_TEXTURES = os.path.join("texture", "tilemap.png")
 
-
 def create_sprite(img, sprite_size):
     icon = pygame.image.load(img).convert_alpha()
     icon = pygame.transform.scale(icon, (sprite_size, sprite_size))
@@ -83,15 +82,15 @@ class SpriteProvider:
     BORDER = 3
     CHEST = 4
     STAIRS = 5
-    def __init__(self, size):
+    def __init__(self, size=DEFAULT_SPRITE_SIZE):
         self.size = size
-        self.static = Tilemap(STATIC_TEXTURES, DEFAULT_SPRITE_SIZE)
+        self.static = Tilemap(STATIC_TEXTURES, size)
     
     def get_static(self, what, num):
         return self.static.get_sprite(what, num, self.size)
 
     def get_grass(self, num):
-        return self.static.get_sprite(GRASS, num, self.size)
+        return self.static.get_sprite(SpriteProvider.GRASS, num, self.size)
 
 
 class MapFactory(yaml.YAMLObject):
@@ -118,6 +117,8 @@ class AbstractMap(ABC):
                 for j in range(game_surface.map_top, game_surface.map_top + game_surface.win_height ): # +1 removed
                     try:
                         sprite = sp.get_static(self.Map[j][i], self.num)
+                        #sp.size = game_surface.engine.size
+                        sprite = sp.get_static(2, 3)
                         game_surface.blit(sprite, game_surface.map_to_surface((i, j)) )
                     except:
                         pass
@@ -276,6 +277,7 @@ class EmptyMap(MapFactory):
 #                        self.Map[j][i] = sp.get_static(sp.BORDER,self.num)
                     else:
                         self.Map[j][i] = sp.FLOOR
+#                        self.Map[j][i] = self.Map[j][i] = sp.get_static(sp.FLOOR,self.num)
                         #([floor1, floor2, floor3] * 3)[random.randint(0, 8)]
 
         def get_map(self):
@@ -339,16 +341,16 @@ floor1 = [0]
 floor2 = [0]
 floor3 = [0]
 
-class Service:
-    def __init__(self, sprite_size):
-        full = True
-
-        self.sp = SpriteProvider(sprite_size)
-
-        file = open("levels.yml", "r")
-        level_list = yaml.load(file.read())['levels']
-        level_list.append({'map': EndMap.Map(), 'obj': EndMap.Objects()})
-        file.close()
+#class Service:
+##    sp = None
+#
+#    def __init__(self, sprite_size):
+#        full = True
+#        Service.sp = SpriteProvider()
+#        file = open("levels.yml", "r")
+#        level_list = yaml.load(file.read())['levels']
+#        level_list.append({'map': EndMap.Map(), 'obj': EndMap.Objects()})
+#        file.close()
 
 def service_init(sprite_size, full=True):
     global object_list_prob, level_list, sp

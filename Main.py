@@ -33,7 +33,7 @@ def create_game(sprite_size, is_new):
         hero.level = 5
         engine = GameEngine()
         engine.sprite_size = sprite_size
-        srv = Service.Service(sprite_size)
+        #srv = Service.Service(sprite_size)
         Service.service_init(engine.sprite_size)
         Service.reload_game(engine, hero)
         drawer = SE.GameSurface((640, 480), pygame.SRCALPHA, (0, 480),

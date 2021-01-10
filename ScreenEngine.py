@@ -51,10 +51,11 @@ class GameSurface(ScreenHandle):
                 (coords[1] - self.map_top) * self.game_engine.sprite_size)
 
     def draw_background(self):
-        sprite = sp.get_static(self.Map[0][0], self.Map.num)
-        for i in range(0,self.win_width+1):
-            for j in range(0,self.win_height+1):
-                self.blit(sprite, (i * self.game_engine.sprite_size, j * self.game_engine.sprite_size) )
+        #sprite = Service.sp.get_static(self.Map[0][0], self.Map.num)
+        #for i in range(0,self.win_width+1):
+        #    for j in range(0,self.win_height+1):
+        #       self.blit(sprite, (i * self.game_engine.sprite_size, j * self.game_engine.sprite_size) )
+        pass
 
     def draw_hero(self):
         self.game_engine.hero.draw(self)
@@ -66,8 +67,8 @@ class GameSurface(ScreenHandle):
                     try:
                         self.blit(self.game_engine.map[j][i][0], self.map_to_surface((i, j)) )
                     except:
-                        sprite = sp.get
-                        self.blit(self.game_engine.map[j][i], self.map_to_surface((i, j)) )
+                        #sprite = sp.get self.game_engine.map.Map[j][i]
+                        self.blit(self.game_engine.map.Map[j][i], self.map_to_surface((i, j)) )
         else:
             self.fill(colors["white"])
 
@@ -96,8 +97,8 @@ class GameSurface(ScreenHandle):
         self.win_width = int(round(win_width))
         self.win_height = int(round(win_height))
 
-        #self.draw_map()
-        self.draw_background()
+#        self.draw_map()
+#        self.draw_background()
         self.game_engine.map.draw(self)
         self.draw_objects()
         self.draw_hero()
