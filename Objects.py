@@ -3,14 +3,6 @@ import pygame
 import random
 
 
-def create_sprite(img, sprite_size):
-    icon = pygame.image.load(img).convert_alpha()
-    icon = pygame.transform.scale(icon, (sprite_size, sprite_size))
-    sprite = pygame.Surface((sprite_size, sprite_size), pygame.HWSURFACE)
-    sprite.blit(icon, (0, 0))
-    return sprite
-
-
 class Interactive(ABC):
 
     @abstractmethod
@@ -54,6 +46,13 @@ class Creature(AbstractObject):
 
 
 class Hero(Creature):
+    BASE_STATS = {
+        "strength": 20,
+        "endurance": 20,
+        "intelligence": 5,
+        "luck": 5
+    }
+
 
     def __init__(self, stats, icon):
         pos = [1, 1]

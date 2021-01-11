@@ -17,12 +17,6 @@ if not KEYBOARD_CONTROL:
     import numpy as np
     answer = np.zeros(4, dtype=float)
 
-base_stats = {
-    "strength": 20,
-    "endurance": 20,
-    "intelligence": 5,
-    "luck": 5
-}
 
 
 def create_game(sprite_size, is_new):
@@ -58,7 +52,7 @@ def create_game(sprite_size, is_new):
 
 size = 32 # 60
 #create_game(size, True)
-game = GameEngine(32)
+engine = GameEngine(32)
 
 while engine.working:
 
@@ -72,13 +66,13 @@ while engine.working:
                 if event.key == pygame.K_KP_PLUS:
                     size = size + 16 if size < 64 else size
                     size = 64 if size == 48 else size
-                    create_game(size, False)
+                    engine.set_sprite_size(size)
                 if event.key == pygame.K_KP_MINUS:
                     size = size - 16 if size > 16 else size
                     size = 32 if size == 48 else size
-                    create_game(size, False)
+                    engine.set_sprite_size(size)
                 if event.key == pygame.K_r:
-                    create_game(size, True)
+                    engine = GameEngine(size)
                 if event.key == pygame.K_ESCAPE:
                     engine.working = False
                 if engine.game_process:
@@ -96,7 +90,8 @@ while engine.working:
                         iteration += 1
                 else:
                     if event.key == pygame.K_RETURN:
-                        create_game()
+                        #create_game()
+                        pass
     else:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -115,7 +110,8 @@ while engine.working:
             reward = engine.score - prev_score
             print(reward)
         else:
-            create_game()
+            #create_game()
+            pass
 
     gameDisplay.blit(drawer, (0, 0))
     drawer.draw(gameDisplay)

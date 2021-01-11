@@ -1,4 +1,7 @@
+import yaml
+
 import Service
+import Objects
 
 
 class GameEngine:
@@ -14,20 +17,18 @@ class GameEngine:
 
     def __init__(self, sprite_size):
         self.sprite_size = sprite_size
+
+        with open("objects.yml", "r") as file:
+            object_list = yaml.load(file.read())
+
         self.sp = Service.SpriteProvider()
 
-        self.hero = Objects.Hero(base_stats, self.sp.get_hero(sprite_size))
+        #FIXME возможно лучше создание объектов вынести в отдельный метод
+        self.sp.load_ugly_sprites(object_list)
+
+        self.hero = Objects.Hero(Objects.Hero.BASE_STATS, self.sp.get_hero(sprite_size))
         self.hero.level = 1
         
-        #FIXME зачем это все в сервисе? это чать игры
-        Service.service_init(engine.sprite_size)
-
-        #FIXME old service_init code
-        file = open("objects.yml", "r")
-
-        object_list = yaml.load(file.read())
-        object_list_prob = object_list_tmp
-
         object_list_actions = {
             'reload_game': self.reload_game,
             'add_gold': self.add_gold,
@@ -36,33 +37,25 @@ class GameEngine:
             'restore_hp': self.restore_hp
         }
 
-        for obj in object_list_prob['objects']:
-            prop = object_list_prob['objects'][obj]
-            prop_tmp = object_list['objects'][obj]
-            prop['sprite'][0] = create_sprite(
-                os.path.join(OBJECT_TEXTURE, prop_tmp['sprite'][0]), sprite_size)
-            prop['action'] = object_list_actions[prop_tmp['action']]
+        self.static = object_list['objects']
+        for name in self.static:
+            obj = self.static[name]
+            obj['action'] = object_list_actions[obj['action']]
 
-        for ally in object_list_prob['ally']:
-            prop = object_list_prob['ally'][ally]
-            prop_tmp = object_list['ally'][ally]
-            prop['sprite'][0] = create_sprite(
-                os.path.join(ALLY_TEXTURE, prop_tmp['sprite'][0]), sprite_size)
-            prop['action'] = object_list_actions[prop_tmp['action']]
+        self.ally = object_list['ally']
+        for name in self.ally:
+            obj = self.ally[name]
+            obj['action'] = object_list_actions[obj['action']]
 
-        for enemy in object_list_prob['enemies']:
-            prop = object_list_prob['enemies'][enemy]
-            prop_tmp = object_list['enemies'][enemy]
-            prop['sprite'][0] = create_sprite(
-                os.path.join(ENEMY_TEXTURE, prop_tmp['sprite'][0]), sprite_size)
-
-        file.close()
-        #FIXME old service_init code
+        self.enemies = object_list['enemies']
+        for name in self.enemies:
+            obj = self.enemies[name]
+            #obj['action'] = object_list_actions[obj['action']]
 
         # Load and create levels from YAML 
         file = open("levels.yml", "r")
         self.level_list = yaml.load(file.read())['levels']
-        self.level_list.append({'map': EndMap.Map(), 'obj': EndMap.Objects()})
+        self.level_list.append({'map': Service.EndMap.Map(), 'obj': Service.EndMap.Objects()})
         file.close()
 
 
@@ -74,21 +67,23 @@ class GameEngine:
                                                                             SE.ScreenHandle(
                                                                                 (0, 0))
                                                                             ))))
-
+    def set_sprite_size(self, sprite_size):
+        self.sprite_size = sprite_size
 
 
     def reload_game(self):
-        self.level_list
-        level_list_max = len(level_list) - 1
+        level_list_max = len(self.level_list) - 1
         self.level += 1
         self.hero.position = [1, 1]
-        self.objects = []
-        generator = level_list[min(engine.level, level_list_max)]
+
+        generator = self.level_list[min(self.level, level_list_max)]
         _map = generator['map'] #.get_map()
         self.load_map(_map)
-        self.add_objects(generator['obj'].get_objects(_map))
-        #self.add_hero(hero)
 
+        self.objects = []
+        self.add_objects(generator['obj'].get_objects(_map))
+
+    # OBSERVER methods
     def subscribe(self, obj):
         self.subscribers.add(obj)
 
@@ -155,18 +150,43 @@ class GameEngine:
 
     # ACTIONS
     def add_gold(self):
-        #TODO implement it
-        pass
+        if random.randint(1, 10) == 1:
+            self.score -= 0.05
+            self.hero = Objects.Weakness(self.hero)
+            self.notify("You were cursed")
+        else:
+            self.score += 0.1
+            gold = int(random.randint(10, 1000) * (1.1**(self.hero.level - 1)))
+            self.hero.gold += gold
+            self.notify(f"{gold} gold added")
     
     def apply_blessing(self):
         #TODO implement it
+        if self.hero.gold >= int(20 * 1.5**self.level) - 2 * self.hero.stats["intelligence"]:
+            self.score += 0.2
+            self.hero.gold -= int(20 * 1.5**self.level) - \
+                2 * self.hero.stats["intelligence"]
+            if random.randint(0, 1) == 0:
+                self.hero = Objects.Blessing(self.hero)
+                self.notify("Blessing applied")
+            else:
+                self.hero = Objects.Berserk(self.hero)
+                self.notify("Berserk applied")
+        else:
+            self.score -= 0.1
         pass
     
     def remove_effect(self):
         #TODO implement it
+        if self.hero.gold >= int(10 * 1.5**self.level) - 2 * self.hero.stats["intelligence"] and "base" in dir(self.hero):
+            self.hero.gold -= int(10 * 1.5**self.level) - \
+                2 * self.hero.stats["intelligence"]
+            self.hero = self.hero.base
+            self.hero.calc_max_HP()
+            self.notify("Effect removed")
         pass
     
     def restore_hp(self):
-        #TODO implement it
-        pass
-
+        self.score += 0.1
+        self.hero.hp = self.hero.max_hp
+        self.notify("HP restored")

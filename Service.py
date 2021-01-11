@@ -13,67 +13,7 @@ ALLY_TEXTURE = os.path.join("texture", "ally")
 
 DEFAULT_SPRITE_SIZE = 32
 STATIC_TEXTURES = os.path.join("texture", "tilemap.png")
-
-def create_sprite(img, sprite_size):
-    icon = pygame.image.load(img).convert_alpha()
-    icon = pygame.transform.scale(icon, (sprite_size, sprite_size))
-    sprite = pygame.Surface((sprite_size, sprite_size), pygame.HWSURFACE)
-    sprite.blit(icon, (0, 0))
-    return sprite
-
-def reload_game(engine, hero):
-    global level_list
-    level_list_max = len(level_list) - 1
-    engine.level += 1
-    hero.position = [1, 1]
-    engine.objects = []
-    generator = level_list[min(engine.level, level_list_max)]
-    _map = generator['map'] #.get_map()
-    engine.load_map(_map)
-    engine.add_objects(generator['obj'].get_objects(_map))
-    engine.add_hero(hero)
-
-
-def restore_hp(engine, hero):
-    engine.score += 0.1
-    hero.hp = hero.max_hp
-    engine.notify("HP restored")
-
-
-def apply_blessing(engine, hero):
-    if hero.gold >= int(20 * 1.5**engine.level) - 2 * hero.stats["intelligence"]:
-        engine.score += 0.2
-        hero.gold -= int(20 * 1.5**engine.level) - \
-            2 * hero.stats["intelligence"]
-        if random.randint(0, 1) == 0:
-            engine.hero = Objects.Blessing(hero)
-            engine.notify("Blessing applied")
-        else:
-            engine.hero = Objects.Berserk(hero)
-            engine.notify("Berserk applied")
-    else:
-        engine.score -= 0.1
-
-
-def remove_effect(engine, hero):
-    if hero.gold >= int(10 * 1.5**engine.level) - 2 * hero.stats["intelligence"] and "base" in dir(hero):
-        hero.gold -= int(10 * 1.5**engine.level) - \
-            2 * hero.stats["intelligence"]
-        engine.hero = hero.base
-        engine.hero.calc_max_HP()
-        engine.notify("Effect removed")
-
-
-def add_gold(engine, hero):
-    if random.randint(1, 10) == 1:
-        engine.score -= 0.05
-        engine.hero = Objects.Weakness(hero)
-        engine.notify("You were cursed")
-    else:
-        engine.score += 0.1
-        gold = int(random.randint(10, 1000) * (1.1**(engine.hero.level - 1)))
-        hero.gold += gold
-        engine.notify(f"{gold} gold added")
+HERO_TILEMAP = os.path.join("texture", "Hero", "Soldier 06-1.png")
 
 
 class SpriteProvider:
@@ -87,28 +27,69 @@ class SpriteProvider:
     def __init__(self, size=DEFAULT_SPRITE_SIZE):
         self.size = size
         self.static = Tilemap(32, STATIC_TEXTURES) # Тут указываем реальный размер плитки в картинке (32)
-        self.ugly = Tilemap(32, rows = 4, cols = 3)
+        self.hero = Tilemap(32, HERO_TILEMAP)
+        self.ugly = {} 
+        self.ugly_ids = {}
+        self.ugly_images = True
     
-    def load_ugly_sprites():
-        #FIXME загрузить тут убогие спрайты из шаблона
-        self.wall[0] = create_sprite(os.path.join("texture", "wall.png"), sprite_size)
-        self.floor1[0] = create_sprite(os.path.join("texture", "Ground_1.png"), sprite_size)
-        self.floor2[0] = create_sprite(os.path.join("texture", "Ground_2.png"), sprite_size)
-        self.floor3[0] = create_sprite(os.path.join("texture", "Ground_3.png"), sprite_size)
+    def load_ugly_sprites(self, objects):
+        #FIXME загрузить тут убогие спрайты из шаблона проекта
+        self.objects = objects
+        rows = 10
+        cols = 8
+        for o in objects: cols = max(len(objects[o]), cols)
+        self.ugly['map'] = Tilemap(32, rows = rows, cols = cols)
+        
+        tile = self.ugly['map'].batch_load_tile_at(self.WALL, 0, os.path.join("texture", "wall.png"))
+        [self.ugly['map'].batch_add_tile_at(self.WALL, i + 1, t) for i, t in enumerate([tile] * (cols - 1))]
+        [self.ugly['map'].batch_add_tile_at(self.BORDER, i, t) for i, t in enumerate([tile] * cols)]
+        g1 = self.ugly['map'].batch_load_tile_at(self.FLOOR, 0, os.path.join("texture", "Ground_1.png"))
+        g2 = self.ugly['map'].batch_load_tile_at(self.FLOOR, 1, os.path.join("texture", "Ground_2.png"))
+        g3 = self.ugly['map'].batch_load_tile_at(self.FLOOR, 2, os.path.join("texture", "Ground_3.png"))
+        [self.ugly['map'].batch_add_tile_at(self.GRASS, i, t) for i, t in enumerate([g1, g2, g3] * 2 + [g1, g2] )]
+        self.ugly['map'].update_tilemaps()
+
+        def pack_sprites(obj_type):
+            self.ugly[obj_type] = Tilemap(32, rows = 1, cols = max(5,len(objects[obj_type])))
+            self.ugly_ids[obj_type] = {}
+            objs = objects[obj_type]
+            for i, name in enumerate(objs):
+                print('pack', i, objs[name])
+                self.ugly[obj_type].batch_load_tile_at(0, i, os.path.join("texture", obj_type, objs[name]['sprite'][0]))
+                self.ugly_ids[obj_type][name] = i
+            self.ugly[obj_type].update_tilemaps()
+        
+        pack_sprites('objects')
+        pack_sprites('ally')
+        pack_sprites('enemies')
+
+        self.ugly['hero'] = Tilemap(32, os.path.join("texture", "Hero.png"))
+
         pass
     
-    def load_sprite(self, path, filename):
-
-
-    def get_static(self, what, num):
-        return self.static.get_sprite(what, num, self.size)
+    def get_static(self, what, num, size):
+        if self.ugly_images:
+            return self.ugly['map'].get_sprite(what, num, size)
+        else:
+            return self.static.get_sprite(what, num, size)
 
     def get_grass(self, num):
         return self.static.get_sprite(SpriteProvider.GRASS, num, self.size)
 
     def get_hero(self, sprite_size):
-        return create_sprite(os.path.join("texture", "Hero.png"), sprite_size))
+        if self.ugly_images:
+            return self.ugly['hero'].get_sprite(0, 0, sprite_size)
+        else:
+            return self.hero.get_sprite(2, 2, sprite_size)
 
+    def get_object(self, obj_type, name, sprite_size):
+        if self.ugly_images:
+            print('get object: ', obj_type, name)
+            return self.ugly[obj_type].get_sprite(0, self.ugly_ids[obj_type][name], sprite_size)
+        else:
+            #TODO возвращать красивых монстриков.
+            return self.ugly[obj_type].get_sprite(0, self.ugly_ids[obj], sprite_size)
+            pass
 
 
 class MapFactory(yaml.YAMLObject):
@@ -191,6 +172,7 @@ class AbstractObjects(ABC):
 
     def get_defaults(self, object_type):
         _config = {}
+        #FIXME генерация объектов сломалась после рефактора
         for obj_name in object_list_prob[object_type]:
             min_count = 0
             max_count = 5
@@ -239,7 +221,12 @@ class EndMap(MapFactory):
             self.Map = list(map(list, self.Map))
             for i in self.Map:
                 for j in range(len(i)):
-                    i[j] = wall if i[j] == '0' else floor1
+                    if i[j] == '0':
+                        i[j] = SpriteProvider.BORDER
+                    elif i[j] == '#':
+                        i[j] = SpriteProvider.WALL
+                    else:
+                        i[j] = SpriteProvider.FLOOR
          
         def get_map(self):
             return self.Map
@@ -294,10 +281,10 @@ class EmptyMap(MapFactory):
             for i in range(41):
                 for j in range(41):
                     if i == 0 or j == 0 or i == 40 or j == 40:
-                        self.Map[j][i] = sp.BORDER
+                        self.Map[j][i] = SpriteProvider.BORDER
 #                        self.Map[j][i] = sp.get_static(sp.BORDER,self.num)
                     else:
-                        self.Map[j][i] = sp.FLOOR
+                        self.Map[j][i] = SpriteProvider.FLOOR
 #                        self.Map[j][i] = self.Map[j][i] = sp.get_static(sp.FLOOR,self.num)
                         #([floor1, floor2, floor3] * 3)[random.randint(0, 8)]
 
@@ -361,66 +348,3 @@ class SpecialMap(MapFactory):
             self.make_objects(_map)
             return self.objects
 
-
-wall = [0]
-floor1 = [0]
-floor2 = [0]
-floor3 = [0]
-
-def service_init(sprite_size, full=True):
-    global object_list_prob, level_list, sp
-
-    global wall
-    global floor1
-    global floor2
-    global floor3
-
-    wall[0] = create_sprite(os.path.join("texture", "wall.png"), sprite_size)
-    floor1[0] = create_sprite(os.path.join("texture", "Ground_1.png"), sprite_size)
-    floor2[0] = create_sprite(os.path.join("texture", "Ground_2.png"), sprite_size)
-    floor3[0] = create_sprite(os.path.join("texture", "Ground_3.png"), sprite_size)
-
-    if full:
-        sp = SpriteProvider(sprite_size) # при инициализации карты плиток важно оригинальное значение 
-    else:
-        sp.size = sprite_size
-
-    file = open("objects.yml", "r")
-
-    object_list_tmp = yaml.load(file.read())
-    if full:
-        object_list_prob = object_list_tmp
-
-    object_list_actions = {'reload_game': reload_game,
-                           'add_gold': add_gold,
-                           'apply_blessing': apply_blessing,
-                           'remove_effect': remove_effect,
-                           'restore_hp': restore_hp}
-
-    for obj in object_list_prob['objects']:
-        prop = object_list_prob['objects'][obj]
-        prop_tmp = object_list_tmp['objects'][obj]
-        prop['sprite'][0] = create_sprite(
-            os.path.join(OBJECT_TEXTURE, prop_tmp['sprite'][0]), sprite_size)
-        prop['action'] = object_list_actions[prop_tmp['action']]
-
-    for ally in object_list_prob['ally']:
-        prop = object_list_prob['ally'][ally]
-        prop_tmp = object_list_tmp['ally'][ally]
-        prop['sprite'][0] = create_sprite(
-            os.path.join(ALLY_TEXTURE, prop_tmp['sprite'][0]), sprite_size)
-        prop['action'] = object_list_actions[prop_tmp['action']]
-
-    for enemy in object_list_prob['enemies']:
-        prop = object_list_prob['enemies'][enemy]
-        prop_tmp = object_list_tmp['enemies'][enemy]
-        prop['sprite'][0] = create_sprite(
-            os.path.join(ENEMY_TEXTURE, prop_tmp['sprite'][0]), sprite_size)
-
-    file.close()
-
-    if full:
-        file = open("levels.yml", "r")
-        level_list = yaml.load(file.read())['levels']
-        level_list.append({'map': EndMap.Map(), 'obj': EndMap.Objects()})
-        file.close()
