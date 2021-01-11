@@ -56,8 +56,9 @@ def create_game(sprite_size, is_new):
     iteration = 0
 
 
-size = 16 # 60
-create_game(size, True)
+size = 32 # 60
+#create_game(size, True)
+game = GameEngine(32)
 
 while engine.working:
 

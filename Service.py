@@ -2,8 +2,9 @@ import pygame
 import random
 import yaml
 import os
-import Objects
 from abc import ABC, abstractmethod
+
+import Objects
 from Tilemap import Tilemap
 
 OBJECT_TEXTURE = os.path.join("texture", "objects")
@@ -82,15 +83,32 @@ class SpriteProvider:
     BORDER = 3
     CHEST = 4
     STAIRS = 5
+
     def __init__(self, size=DEFAULT_SPRITE_SIZE):
         self.size = size
-        self.static = Tilemap(STATIC_TEXTURES, size)
+        self.static = Tilemap(32, STATIC_TEXTURES) # Тут указываем реальный размер плитки в картинке (32)
+        self.ugly = Tilemap(32, rows = 4, cols = 3)
     
+    def load_ugly_sprites():
+        #FIXME загрузить тут убогие спрайты из шаблона
+        self.wall[0] = create_sprite(os.path.join("texture", "wall.png"), sprite_size)
+        self.floor1[0] = create_sprite(os.path.join("texture", "Ground_1.png"), sprite_size)
+        self.floor2[0] = create_sprite(os.path.join("texture", "Ground_2.png"), sprite_size)
+        self.floor3[0] = create_sprite(os.path.join("texture", "Ground_3.png"), sprite_size)
+        pass
+    
+    def load_sprite(self, path, filename):
+
+
     def get_static(self, what, num):
         return self.static.get_sprite(what, num, self.size)
 
     def get_grass(self, num):
         return self.static.get_sprite(SpriteProvider.GRASS, num, self.size)
+
+    def get_hero(self, sprite_size):
+        return create_sprite(os.path.join("texture", "Hero.png"), sprite_size))
+
 
 
 class MapFactory(yaml.YAMLObject):
@@ -261,7 +279,10 @@ class RandomMap(MapFactory):
             self.make_objects(_map)
             return self.objects
 
-
+#####################################################################################################
+##
+##
+#####################################################################################################
 class EmptyMap(MapFactory):
 
     yaml_tag = "!empty_map"
@@ -295,6 +316,11 @@ class EmptyMap(MapFactory):
             self.make_objects(_map)
             return self.objects
 
+
+#####################################################################################################
+##
+##
+#####################################################################################################
 class SpecialMap(MapFactory):
 
     yaml_tag = "!special_map"
@@ -341,17 +367,6 @@ floor1 = [0]
 floor2 = [0]
 floor3 = [0]
 
-#class Service:
-##    sp = None
-#
-#    def __init__(self, sprite_size):
-#        full = True
-#        Service.sp = SpriteProvider()
-#        file = open("levels.yml", "r")
-#        level_list = yaml.load(file.read())['levels']
-#        level_list.append({'map': EndMap.Map(), 'obj': EndMap.Objects()})
-#        file.close()
-
 def service_init(sprite_size, full=True):
     global object_list_prob, level_list, sp
 
@@ -366,7 +381,7 @@ def service_init(sprite_size, full=True):
     floor3[0] = create_sprite(os.path.join("texture", "Ground_3.png"), sprite_size)
 
     if full:
-        sp = SpriteProvider(sprite_size)
+        sp = SpriteProvider(sprite_size) # при инициализации карты плиток важно оригинальное значение 
     else:
         sp.size = sprite_size
 

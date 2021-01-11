@@ -112,7 +112,6 @@ class ProgressBar(ScreenHandle):
         self.fill(colors["wooden"])
 
     def connect_engine(self, engine):
-    # FIXME save engine and send it to next in chain
         self.engine = engine
         super().connect_engine(engine)
 
