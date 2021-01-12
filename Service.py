@@ -1,3 +1,18 @@
+doc="""
+map:
+  tilemap: 
+    file: map.png
+    pixmap: 32
+    size: 1
+    count: 8
+  objects:
+    grass:
+      index: [0, 0]
+      code: 0
+    wall:
+      index: [1, 0]
+      code: 1
+"""
 import pygame
 import random
 import yaml
@@ -28,9 +43,15 @@ class SpriteProvider:
         self.size = size
         self.static = Tilemap(32, STATIC_TEXTURES) # Тут указываем реальный размер плитки в картинке (32)
         self.hero = Tilemap(32, HERO_TILEMAP)
-        self.ugly = {} 
+        self.npc = {}
+        self.npc_ids = {}
+        self.ugly = {}
         self.ugly_ids = {}
         self.ugly_images = True
+        self.raw_imgs = {}
+        self.new = {'hero':{}, 'map':{}, 'objects':{}, 'enemies':{}, 'ally':{}}
+        # для того, чтобы не ломать старую логику 
+        self.old = {'hero':{}, 'map':{}, 'objects':{}, 'enemies':{}, 'ally':{}}
     
     def load_ugly_sprites(self, objects):
         #FIXME загрузить тут убогие спрайты из шаблона проекта
@@ -38,16 +59,18 @@ class SpriteProvider:
         rows = 10
         cols = 8
         for o in objects: cols = max(len(objects[o]), cols)
-        self.ugly['map'] = Tilemap(32, rows = rows, cols = cols)
         
-        tile = self.ugly['map'].batch_load_tile_at(self.WALL, 0, os.path.join("texture", "wall.png"))
-        [self.ugly['map'].batch_add_tile_at(self.WALL, i + 1, t) for i, t in enumerate([tile] * (cols - 1))]
-        [self.ugly['map'].batch_add_tile_at(self.BORDER, i, t) for i, t in enumerate([tile] * cols)]
-        g1 = self.ugly['map'].batch_load_tile_at(self.FLOOR, 0, os.path.join("texture", "Ground_1.png"))
-        g2 = self.ugly['map'].batch_load_tile_at(self.FLOOR, 1, os.path.join("texture", "Ground_2.png"))
-        g3 = self.ugly['map'].batch_load_tile_at(self.FLOOR, 2, os.path.join("texture", "Ground_3.png"))
-        [self.ugly['map'].batch_add_tile_at(self.GRASS, i, t) for i, t in enumerate([g1, g2, g3] * 2 + [g1, g2] )]
-        self.ugly['map'].update_tilemaps()
+        _map = Tilemap(32, rows = rows, cols = cols)
+        
+        tile = _map.batch_load_tile_at(self.WALL, 0, os.path.join("texture", "wall.png"))
+        [_map.batch_add_tile_at(self.WALL, i + 1, t) for i, t in enumerate([tile] * (cols - 1))]
+        [_map.batch_add_tile_at(self.BORDER, i, t) for i, t in enumerate([tile] * cols)]
+        g1 = _map.batch_load_tile_at(self.FLOOR, 0, os.path.join("texture", "Ground_1.png"))
+        g2 = _map.batch_load_tile_at(self.FLOOR, 1, os.path.join("texture", "Ground_2.png"))
+        g3 = _map.batch_load_tile_at(self.FLOOR, 2, os.path.join("texture", "Ground_3.png"))
+        [_map.batch_add_tile_at(self.GRASS, i, t) for i, t in enumerate([g1, g2, g3] * 2 + [g1, g2] )]
+        _map.update_tilemaps()
+        self.ugly['map'] = _map 
 
         def pack_sprites(obj_type):
             self.ugly[obj_type] = Tilemap(32, rows = 1, cols = max(5,len(objects[obj_type])))
@@ -59,12 +82,23 @@ class SpriteProvider:
                 self.ugly_ids[obj_type][name] = i
             self.ugly[obj_type].update_tilemaps()
         
-        pack_sprites('objects')
-        pack_sprites('ally')
-        pack_sprites('enemies')
+        # pack single sprites or list to tilemap 
+        for obj_class in objects:
+            pack_sprites(obj_class)
 
         self.ugly['hero'] = Tilemap(32, os.path.join("texture", "Hero.png"))
 
+        pass
+    
+    def load_image(self, fullname):
+        """ 
+        load image from disk and save to collection of images. 
+        fullname is a relative path + filename
+        """  
+        self.raw_imgs{fullname} = None
+
+    def load_npc(self, objects):
+        #TODO implement
         pass
     
     def get_static(self, what, num, size):
@@ -90,6 +124,9 @@ class SpriteProvider:
             #TODO возвращать красивых монстриков.
             return self.ugly[obj_type].get_sprite(0, self.ugly_ids[obj], sprite_size)
             pass
+    
+    def get_sprite(what, name, view, phase):
+        sprite = 
 
 
 class MapFactory(yaml.YAMLObject):

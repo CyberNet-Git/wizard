@@ -15,11 +15,16 @@ class AbstractObject(ABC):
         self.sprite = None
 
     def draw(self, game_surface):
+        if self.sp is not None:
+            sprite = sp.get_sprite()
         if type(self.sprite) == list:
             sprite = self.sprite[0]
         else:
             sprite = self.sprite
         game_surface.blit(sprite, game_surface.map_to_surface(self.position) )
+
+    def set_sprite_provider(self, sprite_provider):
+        self.sp = sprite_provider
 
 class Ally(AbstractObject, Interactive):
 
@@ -30,6 +35,9 @@ class Ally(AbstractObject, Interactive):
 
     def interact(self, engine, hero):
         self.action(engine, hero)
+
+    def update_sprite(self):
+        pass
 
 
 class Creature(AbstractObject):

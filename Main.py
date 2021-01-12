@@ -1,15 +1,15 @@
 import pygame
 import os
+
 import Objects
 import ScreenEngine as SE
 from Logic import GameEngine
 import Service
+import const
 
-
-SCREEN_DIM = (800, 600)
 
 pygame.init()
-gameDisplay = pygame.display.set_mode(SCREEN_DIM)
+gameDisplay = pygame.display.set_mode(const.SCREEN_DIM)
 pygame.display.set_caption("MyRPG")
 KEYBOARD_CONTROL = True
 
@@ -18,40 +18,8 @@ if not KEYBOARD_CONTROL:
     answer = np.zeros(4, dtype=float)
 
 
-
-def create_game(sprite_size, is_new):
-    global hero, engine, drawer, iteration, srv
-    if is_new:
-        hero = Objects.Hero(base_stats, Service.create_sprite(
-            os.path.join("texture", "Hero.png"), sprite_size))
-        hero.level = 5
-        engine = GameEngine()
-        engine.sprite_size = sprite_size
-        #srv = Service.Service(sprite_size)
-        Service.service_init(engine.sprite_size)
-        Service.reload_game(engine, hero)
-        drawer = SE.GameSurface((640, 480), pygame.SRCALPHA, (0, 480),
-                                SE.ProgressBar((640, 120), (640, 0),
-                                                SE.InfoWindow((160, 480), (50, 50),
-                                                                SE.HelpWindow((700, 500), pygame.SRCALPHA, (0, 0),
-                                                                            SE.ScreenHandle(
-                                                                                (0, 0))
-                                                                            ))))
-
-    else:
-        engine.sprite_size = sprite_size
-        hero.sprite = Service.create_sprite(
-            os.path.join("texture", "Hero.png"), sprite_size)
-        Service.service_init(sprite_size, False)
-
-    drawer.connect_engine(engine)
-    engine.notify(f'create game {sprite_size}')
-
-    iteration = 0
-
-
 size = 32 # 60
-#create_game(size, True)
+
 engine = GameEngine(32)
 
 while engine.working:
