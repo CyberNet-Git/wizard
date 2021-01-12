@@ -17,9 +17,16 @@ class SquareSprite:
         if filename is not None and os.path.exists(filename):
             self._image = pygame.image.load(filename).convert_alpha()
             assert self._image.get_width() == self._image.get_height()
-            self.cache={self._image.get_width:self._image}
+            self.clear_cache()
+        else:
+            self._image = pygame.Surface((const.DEFAULT_SPRITE_SIZE, const.DEFAULT_SPRITE_SIZE))
+            self.clear_cache()
 
-    def get_sprite(self, size):
+    def clear_cache(self):
+        self.cache={self._image.get_width:self._image}
+
+    def get_sprite(self, size=None):
+        size = size or self._image.get_width()
         if size not in self.cache:
             self.cache[size] = pygame.transform.scale(self._image, (size, size))
         return self.cache[size]
@@ -121,7 +128,7 @@ if __name__=='__main__':
     for i in range(10000):
         for r in range(10):
             for c in range(10):
-                screen.blit(sprite.get_sprite(s), (c*s, r*s))
+                screen.blit(sprite.get_sprite(32), (c*s, r*s))
     print ("{}".format(time.monotonic() - t1))
 
     #screen.blit(tiles.tilemaps[32]['img'], (0,0))
