@@ -2,6 +2,8 @@ import pygame
 import pygame.locals
 import os
 
+import const
+
 DEFAULT_TILE_SIZE = 32
 DEFAULT_GRID_COLS = 3
 DEFAULT_GRID_ROWS = 3
@@ -91,6 +93,10 @@ class Tilemap:
     
     get_sprite = get_tile
 
+
+class CharacterImage(TileMap,pygame.Surface):
+    def __init__(self, size = DEFAULT_TILE_SIZE, filename = None, rows = 4, cols = 3):
+        super().__init__(size, filename, rows, cols)
 
 if __name__=='__main__':
     pygame.init()
