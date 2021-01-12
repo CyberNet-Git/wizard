@@ -1,9 +1,4 @@
 objects:
-  tilemap: 
-    file: static.png
-    pixmap: 32
-    size: 1
-    count: 2
   stairs:
     sprite: [stair.png]
     action: reload_game
@@ -71,21 +66,23 @@ hero:
     intelligence: 5
     luck: 5
 map:
-  tilemap: 
-    file: map.png
-    pixmap: 32
-    size: 1
-    count: 8
-  objects:
-    grass:
-      index: [0, 0]
-      code: 0
-    wall:
-      index: [1, 0]
-      code: 1
-    floor:
-      index: [2, 0]
-      code: 2
-    border:
-      index: [3, 0]
-      code: 3
+  grass:
+    index: [0, 0]
+    code: 0
+  wall:
+    index: [1, 0]
+    code: 1
+  floor:
+    index: [2, 0]
+    code: 2
+  border:
+    index: [3, 0]
+    code: 3
+---
+tilemaps:
+  - !tilemap &map
+      file: map.png
+      pixmap: 32
+  - !tilemap &static
+      file: static.png
+      pixmap: 32

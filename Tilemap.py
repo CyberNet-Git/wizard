@@ -10,12 +10,7 @@ DEFAULT_GRID_ROWS = 3
 
 class Tilemap:
     """
-    Tilemap is a single loaded or constructed image sliced into a grid of tiles
-    +---+---+---+
-    |   |   |   |
-    +---+---+---+
-    |   |   |   |
-    +---+---+---+
+    Tilemap is a single loaded sliced into a grid of tiles
     """
     def __init__(self, size = DEFAULT_TILE_SIZE, filename = None, rows = None, cols = None):
         self.size = size
@@ -93,8 +88,30 @@ class Tilemap:
     
     get_sprite = get_tile
 
+class CombinedTilemap(Tilemap):
+    def __init__(self, size = DEFAULT_TILE_SIZE, filename = None, rows = None, cols = None):
+        self.size = size
+        self.filename = filename
+        self.tilemaps = {16:{'img':None}, 32:{'img':None}, 48:{'img':None}, 64:{'img':None}}
 
-class CharacterImage(TileMap,pygame.Surface):
+        if filename is not None and os.path.exists(filename):
+            # load image from file
+            self.image = pygame.image.load(filename).convert_alpha()
+            self.image_width, self.image_height = self.image.get_size()
+            self.grid_cols = cols or self.image_width // size
+            self.grid_rows = rows or self.image_height // size
+        else:
+            # just make an empty tilemap
+            self.grid_cols = cols or DEFAULT_GRID_COLS
+            self.grid_rows = rows or DEFAULT_GRID_ROWS
+            self.image_width = self.size * self.grid_cols
+            self.image_height = self.size * self.grid_rows
+            self.image = pygame.Surface((self.image_width, self.image_height), pygame.SRCALPHA)
+
+        self.make_grid()
+
+
+class CharacterImage(Tilemap):
     def __init__(self, size = DEFAULT_TILE_SIZE, filename = None, rows = 4, cols = 3):
         super().__init__(size, filename, rows, cols)
 

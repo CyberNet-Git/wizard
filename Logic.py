@@ -2,6 +2,7 @@ import yaml
 
 import Service
 import Objects
+import Sprite
 
 
 class GameEngine:
@@ -21,7 +22,7 @@ class GameEngine:
         with open("objects.yml", "r") as file:
             object_list = yaml.load(file.read())
 
-        self.sp = Service.SpriteProvider()
+        self.sp = Sprite.SpriteProvider()
 
         #FIXME возможно лучше создание объектов вынести в отдельный метод
         self.sp.load_ugly_sprites(object_list)

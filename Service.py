@@ -1,18 +1,3 @@
-doc="""
-map:
-  tilemap: 
-    file: map.png
-    pixmap: 32
-    size: 1
-    count: 8
-  objects:
-    grass:
-      index: [0, 0]
-      code: 0
-    wall:
-      index: [1, 0]
-      code: 1
-"""
 import pygame
 import random
 import yaml
@@ -21,6 +6,7 @@ from abc import ABC, abstractmethod
 
 import Objects
 from Tilemap import Tilemap
+
 
 OBJECT_TEXTURE = os.path.join("texture", "objects")
 ENEMY_TEXTURE = os.path.join("texture", "enemies")
@@ -31,102 +17,6 @@ STATIC_TEXTURES = os.path.join("texture", "tilemap.png")
 HERO_TILEMAP = os.path.join("texture", "Hero", "Soldier 06-1.png")
 
 
-class SpriteProvider:
-    GRASS = 0
-    WALL = 1
-    FLOOR = 2
-    BORDER = 3
-    CHEST = 4
-    STAIRS = 5
-
-    def __init__(self, size=DEFAULT_SPRITE_SIZE):
-        self.size = size
-        self.static = Tilemap(32, STATIC_TEXTURES) # Тут указываем реальный размер плитки в картинке (32)
-        self.hero = Tilemap(32, HERO_TILEMAP)
-        self.npc = {}
-        self.npc_ids = {}
-        self.ugly = {}
-        self.ugly_ids = {}
-        self.ugly_images = True
-        self.raw_imgs = {}
-        self.new = {'hero':{}, 'map':{}, 'objects':{}, 'enemies':{}, 'ally':{}}
-        # для того, чтобы не ломать старую логику 
-        self.old = {'hero':{}, 'map':{}, 'objects':{}, 'enemies':{}, 'ally':{}}
-    
-    def load_ugly_sprites(self, objects):
-        #FIXME загрузить тут убогие спрайты из шаблона проекта
-        self.objects = objects
-        rows = 10
-        cols = 8
-        for o in objects: cols = max(len(objects[o]), cols)
-        
-        _map = Tilemap(32, rows = rows, cols = cols)
-        
-        tile = _map.batch_load_tile_at(self.WALL, 0, os.path.join("texture", "wall.png"))
-        [_map.batch_add_tile_at(self.WALL, i + 1, t) for i, t in enumerate([tile] * (cols - 1))]
-        [_map.batch_add_tile_at(self.BORDER, i, t) for i, t in enumerate([tile] * cols)]
-        g1 = _map.batch_load_tile_at(self.FLOOR, 0, os.path.join("texture", "Ground_1.png"))
-        g2 = _map.batch_load_tile_at(self.FLOOR, 1, os.path.join("texture", "Ground_2.png"))
-        g3 = _map.batch_load_tile_at(self.FLOOR, 2, os.path.join("texture", "Ground_3.png"))
-        [_map.batch_add_tile_at(self.GRASS, i, t) for i, t in enumerate([g1, g2, g3] * 2 + [g1, g2] )]
-        _map.update_tilemaps()
-        self.ugly['map'] = _map 
-
-        def pack_sprites(obj_type):
-            self.ugly[obj_type] = Tilemap(32, rows = 1, cols = max(5,len(objects[obj_type])))
-            self.ugly_ids[obj_type] = {}
-            objs = objects[obj_type]
-            for i, name in enumerate(objs):
-                print('pack', i, objs[name])
-                self.ugly[obj_type].batch_load_tile_at(0, i, os.path.join("texture", obj_type, objs[name]['sprite'][0]))
-                self.ugly_ids[obj_type][name] = i
-            self.ugly[obj_type].update_tilemaps()
-        
-        # pack single sprites or list to tilemap 
-        for obj_class in objects:
-            pack_sprites(obj_class)
-
-        self.ugly['hero'] = Tilemap(32, os.path.join("texture", "Hero.png"))
-
-        pass
-    
-    def load_image(self, fullname):
-        """ 
-        load image from disk and save to collection of images. 
-        fullname is a relative path + filename
-        """  
-        self.raw_imgs{fullname} = None
-
-    def load_npc(self, objects):
-        #TODO implement
-        pass
-    
-    def get_static(self, what, num, size):
-        if self.ugly_images:
-            return self.ugly['map'].get_sprite(what, num, size)
-        else:
-            return self.static.get_sprite(what, num, size)
-
-    def get_grass(self, num):
-        return self.static.get_sprite(SpriteProvider.GRASS, num, self.size)
-
-    def get_hero(self, sprite_size):
-        if self.ugly_images:
-            return self.ugly['hero'].get_sprite(0, 0, sprite_size)
-        else:
-            return self.hero.get_sprite(2, 2, sprite_size)
-
-    def get_object(self, obj_type, name, sprite_size):
-        if self.ugly_images:
-            print('get object: ', obj_type, name)
-            return self.ugly[obj_type].get_sprite(0, self.ugly_ids[obj_type][name], sprite_size)
-        else:
-            #TODO возвращать красивых монстриков.
-            return self.ugly[obj_type].get_sprite(0, self.ugly_ids[obj], sprite_size)
-            pass
-    
-    def get_sprite(what, name, view, phase):
-        sprite = 
 
 
 class MapFactory(yaml.YAMLObject):

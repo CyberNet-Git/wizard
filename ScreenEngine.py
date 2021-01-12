@@ -41,6 +41,7 @@ class GameSurface(ScreenHandle):
         super().__init__(*args, **kwargs)
         self.map_left = 0
         self.map_top = 0
+        self.sprite_size = 32
 
     def connect_engine(self, engine):
         self.game_engine = engine
