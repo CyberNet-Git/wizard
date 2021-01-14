@@ -1,0 +1,41 @@
+hero:
+  1:
+    sprite: [Soldier 01-1]
+  2:
+    sprite: [Soldier 02-1]
+  3:
+    sprite: [Soldier 03-1]
+  4:
+    sprite: [Soldier 04-1]
+  5:
+    sprite: [Soldier 05-1]
+  6:
+    sprite: [Soldier 06-1]
+  7:
+    sprite: [Soldier 07-1]
+
+enemies:
+  rat:
+    sprite: [ratanim.png]
+  knight:
+    sprite: [Enemy-1.png, Enemy-2.png, Enemy-3.png]
+  naga:
+    sprite: [NagaAnim.png]
+  dragon:
+    sprite: [DragonAnim.png]
+  ogre:
+    sprite: [OgreAnim.png]
+  bloomer:
+    sprite: [Bloomer.png]
+
+ally:
+  bless:
+    sprite: [Ally-1.png]
+  remove:
+    sprite: [Ally-2.png]
+  heal:
+    sprite: [Ally-3.png]
+  bless:
+    sprite: [Ally-1.png]
+  bless:
+    sprite: [Ally-1.png]

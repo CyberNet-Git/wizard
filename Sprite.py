@@ -187,6 +187,14 @@ class SpriteProvider:
 
     def load_beauty_sprites(self):
         # load Hero
+        with open(os.path.join("texture","hero","hero.yaml"), "r") as file:
+            sprites = yaml.load(file.read())
+        for t in sprites: # [objects, enemies, ally]
+            for name in sprites[t]:
+                # t - тип (ally, enemies) + objects[t] - Имя + состояние - всегда неопределено
+                filename = sprites[t][name]['sprite'][0]
+                self.sprites[self.NEW][t][name] = {None: Sprite(os.path.join("texture", t, filename ))}
+
         # load Map
         # load Objects
         # load Ally
@@ -248,7 +256,7 @@ if __name__=='__main__':
     t1 = ltime = rtime = time.monotonic()
     ldown = rdown = False
     floor = SquareMultiSprite(filename="texture\\map\\map.png")
-    sprite = AnimatedSprite(filename="texture\\hero\\Soldier 02-1.png")
+    sprite = AnimatedSprite(size=32, filename="texture\\ally\\anim\\Ally-5.png")
     chest = floor
     sprite.set_active_sprite((2, 0))
     sprite.animation = AnimatedSprite.TIMER
