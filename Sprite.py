@@ -256,7 +256,7 @@ if __name__=='__main__':
     t1 = ltime = rtime = time.monotonic()
     ldown = rdown = False
     floor = SquareMultiSprite(filename="texture\\map\\map.png")
-    sprite = AnimatedSprite(size=32, filename="texture\\ally\\anim\\Ally-5.png")
+    sprite = AnimatedSprite(size=64, filename="texture\\hero\\hero-6.png")
     chest = floor
     sprite.set_active_sprite((2, 0))
     sprite.animation = AnimatedSprite.TIMER

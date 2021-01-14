@@ -1,0 +1,44 @@
+hero:
+  level1:
+    anisprite: [Hero-0.png]
+  level2:
+    anisprite: [Hero-1.png]
+  level3:
+    anisprite: [Hero-2.png]
+  level4:
+    anisprite: [Hero-3.png]
+  level5:
+    anisprite: [Hero-4.png]
+  level6:
+    anisprite: [Hero-5.png]
+  level7:
+    anisprite: [Hero-6.png]
+
+enemies:
+  rat:
+    anisprite: [ratanim.png]
+  knight:
+    anisprite: [Enemy-1.png, Enemy-2.png, Enemy-3.png, Enemy-4.png, Enemy-5.png, Enemy-6.png, Enemy-7.png, Enemy-8.png]
+  naga:
+    anisprite: [NagaAnim.png]
+  dragon:
+    anisprite: [DragonAnim.png]
+  ogre:
+    anisprite: [OgreAnim.png]
+  bloomer:
+    anisprite: [Bloomer.png]
+
+ally:
+  bless:
+    anisprite: [Ally-1.png]
+  remove:
+    anisprite: [Ally-2.png]
+  heal:
+    anisprite: [Ally-3.png]
+  bless:
+    anisprite: [Ally-1.png]
+  bless:
+    anisprite: [Ally-1.png]
+
+objects:
+
