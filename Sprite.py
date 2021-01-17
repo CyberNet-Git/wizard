@@ -3,6 +3,8 @@ import pygame
 
 import const
 
+provider = None
+
 class Sprite:
 
     def __init__(self, *args, **kwargs):
@@ -155,7 +157,7 @@ class SpriteProvider:
 
     def __init__(self, size=const.DEFAULT_SPRITE_SIZE):
         self.size = size
-        self.look = False
+        self.look = self.OLD
         self.sprites = {
             self.NEW: {'hero':{}, 'map':{}, 'objects':{}, 'enemies':{}, 'ally':{}}, # tilemaps
             self.OLD:{'hero':{}, 'map':{}, 'objects':{}, 'enemies':{}, 'ally':{}} # old sprites
@@ -171,19 +173,19 @@ class SpriteProvider:
         # Объекты + Имя объекта (сундук, лестница) + состояние (закрыт, открыт)
         # Враги + Имя объекта (он же внешний вид) + направление взгляда
         # Союзники + Имя объекта (он же внешний вид) + направление взгляда
-        self.sprites[self.OLD]['hero'][None] = {None: Sprite(os.path.join("texture","hero", "Hero.png"))}
-        self.sprites[self.OLD]['map']['wall'] = {None: Sprite(os.path.join("texture","map", "wall.png"))}
-        self.sprites[self.OLD]['map']['floor'] = {}
-        self.sprites[self.OLD]['map']['floor'][0] = Sprite(os.path.join("texture","map", "Ground_1.png"))
-        self.sprites[self.OLD]['map']['floor'][1] = Sprite(os.path.join("texture","map", "Ground_2.png"))
-        self.sprites[self.OLD]['map']['floor'][2] = Sprite(os.path.join("texture","map", "Ground_3.png"))
+        self.sprites[self.OLD]['hero'][None] = {None: SquareSprite(os.path.join("texture","hero", "Hero.png"))}
+        self.sprites[self.OLD]['map'][const.WALL] = {None: SquareSprite(os.path.join("texture","map", "wall.png"))}
+        self.sprites[self.OLD]['map'][const.FLOOR] = {}
+        self.sprites[self.OLD]['map'][const.FLOOR][0] = SquareSprite(os.path.join("texture","map", "Ground_1.png"))
+        self.sprites[self.OLD]['map'][const.FLOOR][1] = SquareSprite(os.path.join("texture","map", "Ground_2.png"))
+        self.sprites[self.OLD]['map'][const.FLOOR][2] = SquareSprite(os.path.join("texture","map", "Ground_3.png"))
 
         # загрузить спрайты объектов из YAML
         for t in objects: # [objects, enemies, ally]
             for name in objects[t]:
                 # t - тип (ally, enemies) + objects[t] - Имя + состояние - всегда неопределено
                 filename = objects[t][name]['sprite'][0]
-                self.sprites[self.OLD][t][name] = {None: Sprite(os.path.join("texture", t, filename ))}
+                self.sprites[self.OLD][t][name] = {None: SquareSprite(os.path.join("texture", t, filename ))}
 
     def load_beauty_sprites(self):
         # load Hero
@@ -203,9 +205,20 @@ class SpriteProvider:
 
     def get_sprite(self, what, name, view):
         try:
+            self.sprites[self.look][what]
+        except:
+            what = list(self.sprites[self.look].keys())[0]
+        try:
+            self.sprites[self.look][what][name]
+        except:
+            name = list(self.sprites[self.look][what].keys())[0]
+        try:
+            self.sprites[self.look][what][name][view]
+        except:
+            view = list(self.sprites[self.look][what][name].keys())[0]
+        try:
             return self.sprites[self.look][what][name][view]
         except:
-            #FIXME нужно вернуть любой подходящий спрайт
             return None
 
 
@@ -241,7 +254,7 @@ if __name__=='__main__':
                 sprite.set_view( r + view )
                 screen.blit(sprite.get_sprite(s), (c*s, r*s))
         ugly(sprite_size, sp)
-        pygame.display.flip()
+        pygame.display.update()
         #sprite.next_frame()
         #screen.fill((255, 255, 255))
 
@@ -256,7 +269,7 @@ if __name__=='__main__':
     t1 = ltime = rtime = time.monotonic()
     ldown = rdown = False
     floor = SquareMultiSprite(filename="texture\\map\\map.png")
-    sprite = AnimatedSprite(size=64, filename="texture\\hero\\hero-6.png")
+    sprite = AnimatedSprite(size=64, filename="texture\\ally\\anim\\allybig-4.png")
     chest = floor
     sprite.set_active_sprite((2, 0))
     sprite.animation = AnimatedSprite.TIMER

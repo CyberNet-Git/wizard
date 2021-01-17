@@ -15,16 +15,14 @@ class AbstractObject(ABC):
         self.sprite = None
 
     def draw(self, game_surface):
-        if self.sp is not None:
-            sprite = sp.get_sprite()
-        if type(self.sprite) == list:
-            sprite = self.sprite[0]
-        else:
-            sprite = self.sprite
+        sprite = self.sprite.get_sprite(game_surface.sprite_size)
         game_surface.blit(sprite, game_surface.map_to_surface(self.position) )
 
     def set_sprite_provider(self, sprite_provider):
         self.sp = sprite_provider
+
+class StaticObject(AbstractObject):
+    pass
 
 class Ally(AbstractObject, Interactive):
 

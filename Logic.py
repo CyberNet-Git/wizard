@@ -1,8 +1,11 @@
 import yaml
+import pygame
 
+import const
 import Service
 import Objects
 import Sprite
+import ScreenEngine as SE
 
 
 class GameEngine:
@@ -20,14 +23,14 @@ class GameEngine:
         self.sprite_size = sprite_size
 
         with open("objects.yml", "r") as file:
-            object_list = yaml.load(file.read())
+            Service.object_list = yaml.load(file.read())
 
-        self.sp = Sprite.SpriteProvider()
+        Sprite.provider = Sprite.SpriteProvider()
 
         #FIXME возможно лучше создание объектов вынести в отдельный метод
-        self.sp.load_ugly_sprites(object_list)
+        Sprite.provider.load_ugly_sprites(Service.object_list)
 
-        self.hero = Objects.Hero(Objects.Hero.BASE_STATS, self.sp.get_hero(sprite_size))
+        self.hero = Objects.Hero(Objects.Hero.BASE_STATS, Sprite.provider.get_sprite('hero', 'level1', const.FRONT))
         self.hero.level = 1
         
         object_list_actions = {
@@ -38,27 +41,25 @@ class GameEngine:
             'restore_hp': self.restore_hp
         }
 
-        self.static = object_list['objects']
+        self.static = Service.object_list['objects']
         for name in self.static:
             obj = self.static[name]
             obj['action'] = object_list_actions[obj['action']]
 
-        self.ally = object_list['ally']
+        self.ally = Service.object_list['ally']
         for name in self.ally:
             obj = self.ally[name]
             obj['action'] = object_list_actions[obj['action']]
 
-        self.enemies = object_list['enemies']
+        self.enemies = Service.object_list['enemies']
         for name in self.enemies:
             obj = self.enemies[name]
             #obj['action'] = object_list_actions[obj['action']]
 
         # Load and create levels from YAML 
-        file = open("levels.yml", "r")
-        self.level_list = yaml.load(file.read())['levels']
-        self.level_list.append({'map': Service.EndMap.Map(), 'obj': Service.EndMap.Objects()})
-        file.close()
-
+        with open("levels.yml", "r") as file:
+            self.level_list = yaml.load(file.read())['levels']
+            self.level_list.append({'map': Service.EndMap.Map(), 'obj': Service.EndMap.Objects()})
 
         self.reload_game()
         self.drawer = SE.GameSurface((640, 480), pygame.SRCALPHA, (0, 480),
@@ -68,8 +69,11 @@ class GameEngine:
                                                                             SE.ScreenHandle(
                                                                                 (0, 0))
                                                                             ))))
+        self.drawer.connect_engine(self)
+
     def set_sprite_size(self, sprite_size):
         self.sprite_size = sprite_size
+        self.notify(f'Sprite size set to {sprite_size}')
 
 
     def reload_game(self):

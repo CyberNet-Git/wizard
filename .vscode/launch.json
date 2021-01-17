@@ -8,7 +8,7 @@
             "name": "Python: Текущий файл",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}\\Sprite.py",
+            "program": "${workspaceFolder}\\Main.py",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}"
         }

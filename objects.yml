@@ -1,33 +1,39 @@
 objects:
   stairs:
     sprite: [stair.png]
+    anisprite: [Stairs-0.png]
     action: reload_game
     min-count: 1
     max-count: 1
   chest:
     sprite: [chest.png]
+    anisprite: [Chest-0.png]
     action: add_gold
     min-count: 0
     max-count: 3
 ally:
   bless:
     sprite: [NPC_1.png]
+    anisprite: [Ally-1.png]
     action: apply_blessing
     min-count: 1
     max-count: 6
   remove:
     sprite: [NPC_2.png]
+    anisprite: [Ally-2.png]
     action: remove_effect
     min-count: 1
     max-count: 6
   heal:
     sprite: [NPC_3.png]
+    anisprite: [Ally-3.png]
     action: restore_hp
     min-count: 0
     max-count: 3
 enemies:
   rat:
     sprite: [rat.png]
+    anisprite: [RatAnim.png]
     strength: 2
     endurance: 2
     intelligence: 2
@@ -35,6 +41,7 @@ enemies:
     experience: 50
   knight:
     sprite: [Enemy_1.png]
+    anisprite: [Enemy-1.png, Enemy-2.png, Enemy-3.png, Enemy-4.png, Enemy-5.png, Enemy-6.png, Enemy-7.png, Enemy-8.png]
     strength: 15
     endurance: 15
     intelligence: 15
@@ -42,6 +49,7 @@ enemies:
     experience: 200
   naga:
     sprite: [Naga.png]
+    anisprite: [NagaAnim.png]
     strength: 25
     endurance: 25
     intelligence: 25
@@ -49,6 +57,7 @@ enemies:
     experience: 500
   dragon:
     sprite: [dragon.png]
+    anisprite: [DragonAnim.png]
     strength: 50
     endurance: 50
     intelligence: 50

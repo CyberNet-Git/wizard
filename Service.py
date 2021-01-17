@@ -4,9 +4,9 @@ import yaml
 import os
 from abc import ABC, abstractmethod
 
+import const
 import Objects
-from Tilemap import Tilemap
-
+import Sprite
 
 OBJECT_TEXTURE = os.path.join("texture", "objects")
 ENEMY_TEXTURE = os.path.join("texture", "enemies")
@@ -16,8 +16,7 @@ DEFAULT_SPRITE_SIZE = 32
 STATIC_TEXTURES = os.path.join("texture", "tilemap.png")
 HERO_TILEMAP = os.path.join("texture", "Hero", "Soldier 06-1.png")
 
-
-
+object_list =[]
 
 class MapFactory(yaml.YAMLObject):
 
@@ -42,17 +41,18 @@ class AbstractMap(ABC):
             for i in range(game_surface.map_left, game_surface.map_left + game_surface.win_width ): # +1
                 for j in range(game_surface.map_top, game_surface.map_top + game_surface.win_height ): # +1 removed
                     try:
-                        sprite = sp.get_static(self.Map[j][i], self.num)
+                        sprite = Sprite.provider.get_sprite('map', self.Map[j][i], self.num)
+                        img = sprite.get_sprite(game_surface.sprite_size)
                         #sp.size = game_surface.engine.size
-                        sprite = sp.get_static(2, 3)
-                        game_surface.blit(sprite, game_surface.map_to_surface((i, j)) )
+                        #sprite = sp.get_static(2, 3)
+                        game_surface.blit(img, game_surface.map_to_surface((i, j)) )
                     except:
                         pass
         else:
             self.fill(colors["white"])
     
     def can_move(self, x, y):
-        return self.Map[x][y] not in (sp.WALL, sp.BORDER)
+        return self.Map[x][y] not in (const.WALL, const.BORDER)
 
 
 class AbstractObjects(ABC):
@@ -85,7 +85,7 @@ class AbstractObjects(ABC):
         intersect = True
         while intersect:
             intersect = False
-            if _map.Map[coord[1]][coord[0]] != sp.FLOOR:
+            if _map.Map[coord[1]][coord[0]] != const.FLOOR:
                 intersect = True
                 coord = (random.randint(1, 39),
                             random.randint(1, 39))
@@ -100,10 +100,10 @@ class AbstractObjects(ABC):
     def get_defaults(self, object_type):
         _config = {}
         #FIXME генерация объектов сломалась после рефактора
-        for obj_name in object_list_prob[object_type]:
+        for obj_name in object_list[object_type]:
             min_count = 0
             max_count = 5
-            prop = object_list_prob[object_type][obj_name]
+            prop = object_list[object_type][obj_name]
             try:
                 min_count = prop['min-count']
                 max_count = prop['max-count']
@@ -113,18 +113,19 @@ class AbstractObjects(ABC):
         return _config
 
     def make_objects(self, _map):
-
         for object_type in self.config:
             for obj_name in self.config[object_type]: #  object_list_prob[]:
                 count = self.config[object_type][obj_name]
-                prop = object_list_prob[object_type][obj_name]
+                prop = object_list[object_type][obj_name]
+                # prop[sprite] - это только имя файла.  СПРАЙТ нужно еще получить тут.
                 for i in range(count):
+                    sprite = Sprite.provider.get_sprite(object_type, obj_name, None)
                     if object_type == 'enemies':
                         self.objects.append(Objects.Enemy(
-                            prop['sprite'], prop, prop['experience'], self.get_coord(_map)))
+                            sprite, prop, prop['experience'], self.get_coord(_map)))
                     else:
                         self.objects.append(Objects.Ally(
-                            prop['sprite'], prop['action'], self.get_coord(_map)))
+                            sprite, prop['action'], self.get_coord(_map)))
 
 
 class EndMap(MapFactory):
@@ -149,11 +150,11 @@ class EndMap(MapFactory):
             for i in self.Map:
                 for j in range(len(i)):
                     if i[j] == '0':
-                        i[j] = SpriteProvider.BORDER
+                        i[j] = const.BORDER
                     elif i[j] == '#':
-                        i[j] = SpriteProvider.WALL
+                        i[j] = const.WALL
                     else:
-                        i[j] = SpriteProvider.FLOOR
+                        i[j] = const.FLOOR
          
         def get_map(self):
             return self.Map
@@ -208,10 +209,10 @@ class EmptyMap(MapFactory):
             for i in range(41):
                 for j in range(41):
                     if i == 0 or j == 0 or i == 40 or j == 40:
-                        self.Map[j][i] = SpriteProvider.BORDER
+                        self.Map[j][i] = const.BORDER
 #                        self.Map[j][i] = sp.get_static(sp.BORDER,self.num)
                     else:
-                        self.Map[j][i] = SpriteProvider.FLOOR
+                        self.Map[j][i] = const.FLOOR
 #                        self.Map[j][i] = self.Map[j][i] = sp.get_static(sp.FLOOR,self.num)
                         #([floor1, floor2, floor3] * 3)[random.randint(0, 8)]
 

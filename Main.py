@@ -32,10 +32,12 @@ while engine.working:
                 if event.key == pygame.K_h:
                     engine.show_help = not engine.show_help
                 if event.key == pygame.K_KP_PLUS:
+                    size = engine.sprite_size
                     size = size + 16 if size < 64 else size
                     size = 64 if size == 48 else size
                     engine.set_sprite_size(size)
                 if event.key == pygame.K_KP_MINUS:
+                    size = engine.sprite_size
                     size = size - 16 if size > 16 else size
                     size = 32 if size == 48 else size
                     engine.set_sprite_size(size)
@@ -46,16 +48,16 @@ while engine.working:
                 if engine.game_process:
                     if event.key == pygame.K_UP:
                         engine.move_up()
-                        iteration += 1
+                        #iteration += 1
                     elif event.key == pygame.K_DOWN:
                         engine.move_down()
-                        iteration += 1
+                        #iteration += 1
                     elif event.key == pygame.K_LEFT:
                         engine.move_left()
-                        iteration += 1
+                        #iteration += 1
                     elif event.key == pygame.K_RIGHT:
                         engine.move_right()
-                        iteration += 1
+                        #iteration += 1
                 else:
                     if event.key == pygame.K_RETURN:
                         #create_game()
@@ -81,8 +83,8 @@ while engine.working:
             #create_game()
             pass
 
-    gameDisplay.blit(drawer, (0, 0))
-    drawer.draw(gameDisplay)
+    #gameDisplay.blit(engine.drawer, (0, 0))
+    engine.drawer.draw(gameDisplay)
 
     pygame.display.update()
 
