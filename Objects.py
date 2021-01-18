@@ -18,9 +18,6 @@ class AbstractObject(ABC):
         sprite = self.sprite.get_sprite(game_surface.sprite_size)
         game_surface.blit(sprite, game_surface.map_to_surface(self.position) )
 
-    def set_sprite_provider(self, sprite_provider):
-        self.sp = sprite_provider
-
 class StaticObject(AbstractObject):
     pass
 
@@ -31,11 +28,8 @@ class Ally(AbstractObject, Interactive):
         self.action = action
         self.position = position
 
-    def interact(self, engine, hero):
-        self.action(engine, hero)
-
-    def update_sprite(self):
-        pass
+    def interact(self, engine):
+        self.action()
 
 
 class Creature(AbstractObject):
@@ -59,22 +53,32 @@ class Hero(Creature):
         "luck": 5
     }
 
-
     def __init__(self, stats, icon):
         pos = [1, 1]
         self.level = 1
-        self.exp = 0
+        self._exp = 0
         self.gold = 0
         super().__init__(icon, stats, pos)
+    
+    @property
+    def exp(self):
+        return self._exp
+
+    @exp.setter
+    def exp(self, value):
+        self._exp = value
+        self.level_up()
 
     def level_up(self):
         while self.exp >= 100 * (2 ** (self.level - 1)):
-            yield "level up!"
+            #yield "level up!"
             self.level += 1
             self.stats["strength"] += 2
             self.stats["endurance"] += 2
             self.calc_max_HP()
             self.hp = self.max_hp
+
+
 
 
 class Effect(Hero):
@@ -146,20 +150,31 @@ class Enemy(Interactive,Creature):
         super().__init__(icon, stats, position)
         self.xp = xp
 
-    def interact(self,engine,hero):
-        pass
+    def interact(self,engine):
+        engine.hero.exp += self.xp
+        #engine.hero.level_up()
+
 
 
 class Berserk(Effect):
     def apply_effect(self):
-        pass
+        self.stats["strength"] *= 2
+        self.stats["endurance"] += 2 * random.randint(0,self.stats["luck"])
+        self.stats["intelligence"] //= 2
 
 
 class Blessing(Effect):
     def apply_effect(self):
-        pass
+        self.stats["strength"] += round(self.stats["strength"] * random.random())
+        self.stats["endurance"] += 2 * random.randint(0,self.stats["luck"])
 
 
 class Weakness(Effect):
     def apply_effect(self):
-        pass
+        self.stats["strength"] -= round(self.stats["strength"] * random.random() / 2)
+        self.stats["endurance"] -= round(self.stats["strength"] * random.random() / 2)
+
+# Additional effects. Task #3
+class GoInsane(Effect):
+    def apply_effect(self):
+        self.stats["intelligence"] -= round(self.stats["intelligence"] * random.random()/2)

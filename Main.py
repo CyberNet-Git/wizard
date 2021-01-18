@@ -83,10 +83,10 @@ while engine.working:
             #create_game()
             pass
 
-    #gameDisplay.blit(engine.drawer, (0, 0))
+    gameDisplay.blit(engine.drawer, (0, 0))
     engine.drawer.draw(gameDisplay)
 
-    pygame.display.update()
+    pygame.display.flip()
 
 pygame.display.quit()
 pygame.quit()

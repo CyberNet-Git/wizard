@@ -1,5 +1,6 @@
 import os
 import pygame
+import random
 
 import const
 
@@ -175,6 +176,7 @@ class SpriteProvider:
         # Союзники + Имя объекта (он же внешний вид) + направление взгляда
         self.sprites[self.OLD]['hero'][None] = {None: SquareSprite(os.path.join("texture","hero", "Hero.png"))}
         self.sprites[self.OLD]['map'][const.WALL] = {None: SquareSprite(os.path.join("texture","map", "wall.png"))}
+        self.sprites[self.OLD]['map'][const.BORDER] = self.sprites[self.OLD]['map'][const.WALL]
         self.sprites[self.OLD]['map'][const.FLOOR] = {}
         self.sprites[self.OLD]['map'][const.FLOOR][0] = SquareSprite(os.path.join("texture","map", "Ground_1.png"))
         self.sprites[self.OLD]['map'][const.FLOOR][1] = SquareSprite(os.path.join("texture","map", "Ground_2.png"))
@@ -215,7 +217,8 @@ class SpriteProvider:
         try:
             self.sprites[self.look][what][name][view]
         except:
-            view = list(self.sprites[self.look][what][name].keys())[0]
+            l = list(self.sprites[self.look][what][name].keys())
+            view = l[0]
         try:
             return self.sprites[self.look][what][name][view]
         except:

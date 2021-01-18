@@ -2,6 +2,8 @@ import pygame
 import collections
 import math
 
+import Sprite
+
 colors = {
     "black": (0, 0, 0, 255),
     "white": (255, 255, 255, 255),
@@ -42,6 +44,7 @@ class GameSurface(ScreenHandle):
         self.map_left = 0
         self.map_top = 0
         self.sprite_size = 32
+        self.fill(colors["white"])
 
     def connect_engine(self, engine):
         self.game_engine = engine
@@ -51,12 +54,12 @@ class GameSurface(ScreenHandle):
         return ((coords[0] - self.map_left) * self.game_engine.sprite_size, 
                 (coords[1] - self.map_top) * self.game_engine.sprite_size)
 
-    def draw_background(self):
-        #sprite = Service.sp.get_static(self.Map[0][0], self.Map.num)
-        #for i in range(0,self.win_width+1):
-        #    for j in range(0,self.win_height+1):
-        #       self.blit(sprite, (i * self.game_engine.sprite_size, j * self.game_engine.sprite_size) )
-        pass
+    def draw_background(self, canvas):
+        sprite = Sprite.provider.get_sprite('map', self.game_engine.map.Map[0][0], self.game_engine.map.num)
+        for i in range(0,self.win_width+1):
+            for j in range(0,self.win_height+1):
+               self.blit(sprite.get_sprite(), (i * self.game_engine.sprite_size, j * self.game_engine.sprite_size) )
+        #self.fill(colors["white"])
 
     def draw_hero(self):
         self.game_engine.hero.draw(self)
@@ -91,18 +94,20 @@ class GameSurface(ScreenHandle):
 
         left = hero_pos[0] - half_win_width if hero_pos[0] >= half_win_width else 0
         top = hero_pos[1] - half_win_height if hero_pos[1] >= half_win_height else 0
-        left = map_width - half_win_width*2 if hero_pos[0] > map_width - half_win_width else left
-        top = map_height - half_win_height*2 if hero_pos[1] > map_height - half_win_height else top
+        left = max(0,map_width - half_win_width*2) if hero_pos[0] > map_width - half_win_width else left
+        top = max(0, map_height - half_win_height*2) if hero_pos[1] > map_height - half_win_height else top
         self.map_left = int(round(left))
         self.map_top = int(round(top))
         self.win_width = int(round(win_width))
         self.win_height = int(round(win_height))
 
 #        self.draw_map()
-#        self.draw_background()
+        self.draw_background(canvas)
         self.game_engine.map.draw(self)
         self.draw_objects()
         self.draw_hero()
+        #s = Sprite.provider.get_sprite('hero', 'level1', None).get_sprite(32)
+        #canvas.blit(self, (0,0))
         super().draw(canvas)
 
 

@@ -31,7 +31,15 @@ class MapFactory(yaml.YAMLObject):
 
 class AbstractMap(ABC):
     def __init__(self):
-        pass
+        self.num = random.randint(0,7)# sprite template number from SpriteProvider
+        self.Map = [[0 for _ in range(41)] for _ in range(41)]
+        for i in range(41):
+            for j in range(41):
+                if i == 0 or j == 0 or i == 40 or j == 40:
+                    self.Map[j][i] = const.BORDER
+                else:
+                    self.Map[j][i] = ([const.WALL] + [const.FLOOR + random.randint(0, 2) for _ in range(8) ] )[random.randint(0, 8)]
+
 
     def get_map(self):
         return self.Map
@@ -41,10 +49,8 @@ class AbstractMap(ABC):
             for i in range(game_surface.map_left, game_surface.map_left + game_surface.win_width ): # +1
                 for j in range(game_surface.map_top, game_surface.map_top + game_surface.win_height ): # +1 removed
                     try:
-                        sprite = Sprite.provider.get_sprite('map', self.Map[j][i], self.num)
+                        sprite = Sprite.provider.get_sprite('map', self.Map[j][i] - self.Map[j][i] % 10, self.Map[j][i] % 10 )
                         img = sprite.get_sprite(game_surface.sprite_size)
-                        #sp.size = game_surface.engine.size
-                        #sprite = sp.get_static(2, 3)
                         game_surface.blit(img, game_surface.map_to_surface((i, j)) )
                     except:
                         pass
@@ -52,7 +58,7 @@ class AbstractMap(ABC):
             self.fill(colors["white"])
     
     def can_move(self, x, y):
-        return self.Map[x][y] not in (const.WALL, const.BORDER)
+        return self.Map[x][y] - self.Map[x][y] % 10 not in (const.WALL, const.BORDER)
 
 
 class AbstractObjects(ABC):
@@ -134,6 +140,7 @@ class EndMap(MapFactory):
 
     class Map(AbstractMap):
         def __init__(self):
+            super().__init__()
             self.Map = ['000000000000000000000000000000000000000',
                         '0                                     0',
                         '0                                     0',
@@ -154,7 +161,7 @@ class EndMap(MapFactory):
                     elif i[j] == '#':
                         i[j] = const.WALL
                     else:
-                        i[j] = const.FLOOR
+                        i[j] = const.FLOOR + random.randint(0,2)
          
         def get_map(self):
             return self.Map
@@ -174,13 +181,7 @@ class RandomMap(MapFactory):
     class Map(AbstractMap):
 
         def __init__(self):
-            self.Map = [[0 for _ in range(41)] for _ in range(41)]
-            for i in range(41):
-                for j in range(41):
-                    if i == 0 or j == 0 or i == 40 or j == 40:
-                        self.Map[j][i] = wall
-                    else:
-                        self.Map[j][i] = ([wall] + [floor1, floor2, floor3] * 3)[random.randint(0, 8)]
+            super().__init__()
 
         def get_map(self):
             return self.Map
@@ -204,17 +205,7 @@ class EmptyMap(MapFactory):
 
     class Map(AbstractMap):
         def __init__(self):
-            self.num = random.randint(0,7)# sprite template number from SpriteProvider
-            self.Map = [[0 for _ in range(41)] for _ in range(41)]
-            for i in range(41):
-                for j in range(41):
-                    if i == 0 or j == 0 or i == 40 or j == 40:
-                        self.Map[j][i] = const.BORDER
-#                        self.Map[j][i] = sp.get_static(sp.BORDER,self.num)
-                    else:
-                        self.Map[j][i] = const.FLOOR
-#                        self.Map[j][i] = self.Map[j][i] = sp.get_static(sp.FLOOR,self.num)
-                        #([floor1, floor2, floor3] * 3)[random.randint(0, 8)]
+            super().__init__()
 
         def get_map(self):
             return self.Map
@@ -258,7 +249,8 @@ class SpecialMap(MapFactory):
             self.Map = list(map(list, self.Map))
             for i in self.Map:
                 for j in range(len(i)):
-                    i[j] = wall if i[j] == '0' else floor1
+                    i[j] = const.WALL if i[j] == '0' else const.FLOOR
+            super().__init__()
          
         def get_map(self):
             return self.Map
@@ -271,7 +263,6 @@ class SpecialMap(MapFactory):
         def get_objects(self, _map):
             self.add_objects()
             self.add_ally({})
-            #self.add_enemies(_map, self.config['enemies'])
             # enemies already added from config loaded with yaml
             self.make_objects(_map)
             return self.objects

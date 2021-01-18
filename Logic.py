@@ -1,5 +1,6 @@
 import yaml
 import pygame
+import random
 
 import const
 import Service
@@ -73,6 +74,7 @@ class GameEngine:
 
     def set_sprite_size(self, sprite_size):
         self.sprite_size = sprite_size
+        self.drawer.sprite_size = sprite_size
         self.notify(f'Sprite size set to {sprite_size}')
 
 
@@ -108,7 +110,7 @@ class GameEngine:
         for obj in self.objects:
             if list(obj.position) == self.hero.position:
                 self.delete_object(obj)
-                obj.interact(self, self.hero)
+                obj.interact(self)
 
     # MOVEMENT
     def move_up(self):
@@ -157,7 +159,7 @@ class GameEngine:
     def add_gold(self):
         if random.randint(1, 10) == 1:
             self.score -= 0.05
-            self.hero = Objects.Weakness(self.hero)
+            self.hero = [Objects.Weakness, Objects.GoInsane][random.randint(0,1)](self.hero)
             self.notify("You were cursed")
         else:
             self.score += 0.1
