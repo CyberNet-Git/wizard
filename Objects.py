@@ -152,6 +152,27 @@ class Enemy(Interactive,Creature):
 
     def interact(self,engine):
         engine.hero.exp += self.xp
+        d = engine.hero.stats['strength'] - self.stats['endurance']
+        if d >= 0:
+            u = d * engine.hero.stats['luck'] / max(engine.hero.stats['luck'], self.stats['luck']) \
+                  * engine.hero.stats['intelligence'] / max(engine.hero.stats['intelligence'], self.stats['intelligence'])
+        else:
+            u = abs(d) * engine.hero.stats['luck'] / max(engine.hero.stats['luck'], self.stats['luck']) \
+                  * engine.hero.stats['intelligence'] / max(engine.hero.stats['intelligence'], self.stats['intelligence']) \
+                  * engine.hero.stats['strength'] / self.stats['endurance']
+        self.hp -= round(min(self.hp, u))
+
+        d = self.stats['strength'] - engine.hero.stats['endurance']
+        if d >= 0:
+            u = d * self.stats['luck'] / max(engine.hero.stats['luck'], self.stats['luck']) \
+                  * self.stats['intelligence'] / max(engine.hero.stats['intelligence'], self.stats['intelligence'])
+        else:
+            u = abs(d) * self.stats['luck'] / max(engine.hero.stats['luck'], self.stats['luck']) \
+                  * self.stats['intelligence'] / max(engine.hero.stats['intelligence'], self.stats['intelligence']) \
+                  * self.stats['endurance'] / engine.hero.stats['strength']
+        engine.hero.hp -= round(min(engine.hero.hp, u))
+
+
         #engine.hero.level_up()
 
 

@@ -28,6 +28,7 @@ while engine.working:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 engine.working = False
+
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_h:
                     engine.show_help = not engine.show_help
@@ -43,9 +44,19 @@ while engine.working:
                     engine.set_sprite_size(size)
                 if event.key == pygame.K_r:
                     engine = GameEngine(size)
+                if event.key == pygame.K_m:
+                    engine.show_battle = not engine.show_battle
+                    engine.active_button = 0
                 if event.key == pygame.K_ESCAPE:
                     engine.working = False
-                if engine.game_process:
+
+                if engine.show_battle:
+                    if event.key in [pygame.K_LEFT, pygame.K_RIGHT]:
+                        engine.active_button ^= 1
+                    elif event.key in [pygame.K_RETURN, pygame.K_SPACE]:
+                        engine.show_battle = not engine.show_battle
+                        #iteration += 1
+                elif engine.game_process:
                     if event.key == pygame.K_UP:
                         engine.move_up()
                         #iteration += 1
@@ -58,7 +69,7 @@ while engine.working:
                     elif event.key == pygame.K_RIGHT:
                         engine.move_right()
                         #iteration += 1
-                else:
+
                     if event.key == pygame.K_RETURN:
                         #create_game()
                         pass

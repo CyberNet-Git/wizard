@@ -5,12 +5,12 @@ import math
 import Sprite
 
 colors = {
-    "black": (0, 0, 0, 255),
+    "black": (215, 134, 0, 255),
     "white": (255, 255, 255, 255),
     "red": (255, 0, 0, 255),
     "green": (0, 255, 0, 255),
     "blue": (0, 0, 255, 255),
-    "wooden": (153, 92, 0, 255),
+    "wooden": (65, 32, 2, 255),
 }
 
 
@@ -241,4 +241,79 @@ class HelpWindow(ScreenHandle):
                           (50, 50 + 30 * i))
                 self.blit(font2.render(text[1], True, ((128, 128, 255))),
                           (150, 50 + 30 * i))
+        super().draw(canvas)
+
+class BattleWindow(ScreenHandle):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def connect_engine(self, engine):
+        self.engine = engine
+        super().connect_engine(engine)
+
+    def draw(self, canvas):
+        alpha = 0
+        if self.engine.show_battle:
+            alpha = 255
+        self.fill((65, 32, 2, alpha))
+        text_color = (215, 134, 0)
+        size = self.get_size()
+        fontH = pygame.font.SysFont("algerian", 48)
+        fontB = pygame.font.SysFont("algerian", 24)
+        font1 = pygame.font.SysFont("comicsansms", 18)
+        font2 = pygame.font.SysFont("comicsansms", 18)
+        if self.engine.show_battle:
+            # рамка
+            pygame.draw.lines(self, (255, 0, 0, 255), True, [
+                              (0, 0), (self.get_width(), 0), 
+                              (self.get_width(), self.get_height()), (0, self.get_height())], 5)
+
+            def draw_centered(surf, offx, offy):
+                self.blit( surf, ((self.get_width() - surf.get_width())//2 + offx, offy))
+            battle =  fontH.render('* BATTLE *', True, (text_color))
+            draw_centered(battle, 0, 20)
+
+            text = []
+            text.append(font1.render('HP', True, (text_color)))
+            text.append(font1.render('Strength', True, (text_color)))
+            text.append(font1.render('Endurance', True, (text_color)))
+            text.append(font1.render('Intellect', True, (text_color)))
+            text.append(font1.render('Luck', True, (text_color)))
+            for i,t in enumerate(text):
+                draw_centered(t, 0, 100 + 22 * i)
+
+            # Hero stats
+            text[0] = font2.render(str(self.engine.hero.hp), True, ((128, 128, 255)))
+            text[1] = font2.render(str(self.engine.hero.stats['strength']), True, ((128, 128, 255)))
+            text[2] = font2.render(str(self.engine.hero.stats['endurance']), True, ((128, 128, 255)))
+            text[3] = font2.render(str(self.engine.hero.stats['intelligence']), True, ((128, 128, 255)))
+            text[4] = font2.render(str(self.engine.hero.stats['luck']), True, ((128, 128, 255)))
+            for i,t in enumerate(text):
+                draw_centered(t, -100, 100 + 22 * i)
+
+            # Enemy stats
+            text[0] = font2.render(str(self.engine.hero.hp), True, ((128, 128, 255)))
+            text[1] = font2.render(str(self.engine.hero.stats['strength']), True, ((128, 128, 255)))
+            text[2] = font2.render(str(self.engine.hero.stats['endurance']), True, ((128, 128, 255)))
+            text[3] = font2.render(str(self.engine.hero.stats['intelligence']), True, ((128, 128, 255)))
+            text[4] = font2.render(str(self.engine.hero.stats['luck']), True, ((128, 128, 255)))
+            for i,t in enumerate(text):
+                draw_centered(t, 100, 100 + 22 * i)
+
+            # draw icons of Hero & Enemy
+            self.blit(self.engine.hero.sprite.get_sprite(128),(40, 80))
+            self.blit(self.engine.hero.sprite.get_sprite(128),(self.get_width() - 40 - 128, 80))
+
+            # buttons
+            butt = [0,1]
+            butt[0] = fontB.render('ATTACK!', True, (65, 32, 2), text_color)
+            butt[1] = fontB.render('LEAVE...', True, (65, 32, 2), text_color)
+            draw_centered(butt[0], -100, 250)
+            draw_centered(butt[1], 100, 250)
+            rect = ((self.get_width() - butt[self.engine.active_button].get_width())//2 \
+                    + [-100, 100][self.engine.active_button] - 8, 250 - 8, 
+                    butt[self.engine.active_button].get_width() + 16, butt[self.engine.active_button].get_height() + 16)
+            pygame.draw.rect(self, (255, 0, 0), rect, width=3, border_radius=4)
+
         super().draw(canvas)

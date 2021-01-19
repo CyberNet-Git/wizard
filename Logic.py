@@ -19,6 +19,7 @@ class GameEngine:
     score = 0.
     game_process = True
     show_help = False
+    show_battle = False
 
     def __init__(self, sprite_size):
         self.sprite_size = sprite_size
@@ -64,12 +65,13 @@ class GameEngine:
 
         self.reload_game()
         self.drawer = SE.GameSurface((640, 480), pygame.SRCALPHA, (0, 480),
-                                SE.ProgressBar((640, 120), (640, 0),
-                                                SE.InfoWindow((160, 480), (50, 50),
-                                                                SE.HelpWindow((700, 500), pygame.SRCALPHA, (0, 0),
-                                                                            SE.ScreenHandle(
-                                                                                (0, 0))
-                                                                            ))))
+                        SE.ProgressBar((640, 120), (640, 0),
+                            SE.InfoWindow((160, 480), (50, 50),
+                                SE.HelpWindow((700, 500), pygame.SRCALPHA, (50, 50),
+                                    SE.BattleWindow((700, 300), pygame.SRCALPHA, (0, 0),
+                                        SE.ScreenHandle(
+                                            (0, 0))
+                                    )))))
         self.drawer.connect_engine(self)
 
     def set_sprite_size(self, sprite_size):
@@ -117,6 +119,7 @@ class GameEngine:
         self.score -= 0.02
         if not self.map.can_move(self.hero.position[1] - 1, self.hero.position[0]):
             return
+        #if self.interact((self.hero.position[0], self.hero.position[1] - 1)):
         self.hero.position[1] -= 1
         self.interact()
 
