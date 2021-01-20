@@ -64,14 +64,17 @@ class GameEngine:
             self.level_list.append({'map': Service.EndMap.Map(), 'obj': Service.EndMap.Objects()})
 
         self.reload_game()
-        self.drawer = SE.GameSurface((640, 480), pygame.SRCALPHA, (0, 480),
-                        SE.ProgressBar((640, 120), (640, 0),
-                            SE.InfoWindow((160, 480), (50, 50),
-                                SE.HelpWindow((700, 500), pygame.SRCALPHA, (50, 50),
-                                    SE.BattleWindow((700, 300), pygame.SRCALPHA, (0, 0),
-                                        SE.ScreenHandle(
-                                            (0, 0))
-                                    )))))
+        self.drawer = \
+                        SE.GameSurface((640, 480), pygame.SRCALPHA, (650, 500),
+                            SE.MinimapWindow((136, 96), pygame.SRCALPHA, (0, 0),
+                                SE.DecorWindow((800, 600), pygame.SRCALPHA, (0, 0),
+                                    SE.ProgressBar((640, 600), pygame.SRCALPHA, (660, 30),
+                                        SE.InfoWindow((140, 440), pygame.SRCALPHA, (50, 50),
+                                            SE.HelpWindow((700, 500), pygame.SRCALPHA, (50, 50),
+                                                SE.BattleWindow((700, 300), pygame.SRCALPHA, (0, 0),
+                                                    SE.ScreenHandle(
+                                                        (0, 0))
+                        )))))))
         self.drawer.connect_engine(self)
 
     def set_sprite_size(self, sprite_size):
@@ -121,7 +124,7 @@ class GameEngine:
             return
         #if self.interact((self.hero.position[0], self.hero.position[1] - 1)):
         self.hero.position[1] -= 1
-        self.interact()
+        #self.interact()
 
     def move_down(self):
         self.score -= 0.02

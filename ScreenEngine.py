@@ -1,14 +1,15 @@
 import pygame
 import collections
 import math
+import os
 
 import Sprite
 
 colors = {
     "black": (215, 134, 0, 255),
     "white": (255, 255, 255, 255),
-    "red": (255, 0, 0, 255),
-    "green": (0, 255, 0, 255),
+    "red": (160, 0, 0, 255),
+    "green": (0, 100, 0, 255),
     "blue": (0, 0, 255, 255),
     "wooden": (65, 32, 2, 255),
 }
@@ -25,7 +26,7 @@ class ScreenHandle(pygame.Surface):
             self.successor = None
             self.next_coord = (0, 0)
         super().__init__(*args, **kwargs)
-        self.fill(colors["wooden"])
+        #self.fill(colors["wooden"])
 
     def draw(self, canvas):
         if self.successor is not None:
@@ -51,14 +52,14 @@ class GameSurface(ScreenHandle):
         super().connect_engine(engine)
 
     def map_to_surface(self, coords):
-        return ((coords[0] - self.map_left) * self.game_engine.sprite_size, 
-                (coords[1] - self.map_top) * self.game_engine.sprite_size)
+        return ((coords[0] - self.map_left) * self.sprite_size, 
+                (coords[1] - self.map_top) * self.sprite_size)
 
     def draw_background(self, canvas):
         sprite = Sprite.provider.get_sprite('map', self.game_engine.map.Map[0][0], self.game_engine.map.num)
         for i in range(0,self.win_width+1):
             for j in range(0,self.win_height+1):
-               self.blit(sprite.get_sprite(), (i * self.game_engine.sprite_size, j * self.game_engine.sprite_size) )
+               self.blit(sprite.get_sprite(), (i * self.sprite_size, j * self.sprite_size) )
         #self.fill(colors["white"])
 
     def draw_hero(self):
@@ -82,7 +83,7 @@ class GameSurface(ScreenHandle):
             obj.draw(self)
 
     def draw(self, canvas):
-        size = self.game_engine.sprite_size
+        size = self.sprite_size
         hero_pos = self.game_engine.hero.position
 
         win_width = self.get_width() / size
@@ -115,63 +116,72 @@ class ProgressBar(ScreenHandle):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fill(colors["wooden"])
+        #self.fill(colors["wooden"])
 
     def connect_engine(self, engine):
         self.engine = engine
         super().connect_engine(engine)
 
     def draw(self, canvas):
-        self.fill(colors["wooden"])
-        pygame.draw.rect(self, colors["black"], (50, 30, 200, 30), 2)
-        pygame.draw.rect(self, colors["black"], (50, 70, 200, 30), 2)
+        self.fill((0, 0, 0, 0))
+        pygame.draw.rect(self, colors["black"], (55, 480+30, 200, 30), 2)
+        pygame.draw.rect(self, colors["black"], (55, 480+70, 200, 30), 2)
 
         pygame.draw.rect(self, colors[
-                         "red"], (50, 30, 200 * self.engine.hero.hp / self.engine.hero.max_hp, 30))
-        pygame.draw.rect(self, colors["green"], (50, 70,
-                                                 200 * self.engine.hero.exp / (100 * (2**(self.engine.hero.level - 1))), 30))
+                         "red"], (58, 480+33, 195 * self.engine.hero.hp / self.engine.hero.max_hp, 25))
+        pygame.draw.rect(self, colors["green"], (58, 480+73,
+                                                 195 * self.engine.hero.exp / (100 * (2**(self.engine.hero.level - 1))), 25))
 
         font = pygame.font.SysFont("comicsansms", 20)
         self.blit(font.render(f'Hero at {self.engine.hero.position}', True, colors["black"]),
-                  (250, 0))
+                  (160, 5))
+
+        self.blit(font.render(f'SCORE {self.engine.score:.4f}', True, colors["black"]),
+                  (400, 5))
 
         self.blit(font.render(f'{self.engine.level} floor', True, colors["black"]),
-                  (10, 0))
+                  (60, 5))
 
         self.blit(font.render(f'HP', True, colors["black"]),
-                  (10, 30))
+                  (20, 480+30))
         self.blit(font.render(f'Exp', True, colors["black"]),
-                  (10, 70))
+                  (20, 480+70))
 
         self.blit(font.render(f'{self.engine.hero.hp}/{self.engine.hero.max_hp}', True, colors["black"]),
-                  (60, 30))
+                  (70, 480 + 30))
         self.blit(font.render(f'{self.engine.hero.exp}/{(100*(2**(self.engine.hero.level-1)))}', True, colors["black"]),
-                  (60, 70))
-
-        self.blit(font.render(f'Level', True, colors["black"]),
-                  (300, 30))
-        self.blit(font.render(f'Gold', True, colors["black"]),
-                  (300, 70))
-
-        self.blit(font.render(f'{self.engine.hero.level}', True, colors["black"]),
-                  (360, 30))
-        self.blit(font.render(f'{self.engine.hero.gold}', True, colors["black"]),
-                  (360, 70))
+                  (70, 480 + 70))
 
         self.blit(font.render(f'Str', True, colors["black"]),
-                  (420, 30))
-        self.blit(font.render(f'Luck', True, colors["black"]),
-                  (420, 70))
+                  (265, 480+30))
+        self.blit(font.render(f'Endr', True, colors["black"]),
+                  (265, 480+70))
 
         self.blit(font.render(f'{self.engine.hero.stats["strength"]}', True, colors["black"]),
-                  (480, 30))
-        self.blit(font.render(f'{self.engine.hero.stats["luck"]}', True, colors["black"]),
-                  (480, 70))
+                  (320, 480+30))
+        self.blit(font.render(f'{self.engine.hero.stats["endurance"]}', True, colors["black"]),
+                  (320, 480+70))
 
-        self.blit(font.render(f'SCORE', True, colors["black"]),
-                  (550, 30))
-        self.blit(font.render(f'{self.engine.score:.4f}', True, colors["black"]),
-                  (550, 70))
+        self.blit(font.render(f'Int', True, colors["black"]),
+                  (390, 480+30))
+        self.blit(font.render(f'Luck', True, colors["black"]),
+                  (390, 480+70))
+
+        self.blit(font.render(f'{self.engine.hero.stats["intelligence"]}', True, colors["black"]),
+                  (445, 480+30))
+        self.blit(font.render(f'{self.engine.hero.stats["luck"]}', True, colors["black"]),
+                  (445, 480+70))
+
+        self.blit(font.render(f'Level', True, colors["black"]),
+                  (500, 480+30))
+        self.blit(font.render(f'Gold', True, colors["black"]),
+                  (500, 480+70))
+
+        self.blit(font.render(f'{self.engine.hero.level}', True, colors["black"]),
+                  (570, 480+30))
+        self.blit(font.render(f'{self.engine.hero.gold}', True, colors["black"]),
+                  (570, 480+70))
+
         super().draw(canvas)
 
 
@@ -179,7 +189,7 @@ class InfoWindow(ScreenHandle):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.len = 30
+        self.len = 23
         clear = []
         self.data = collections.deque(clear, maxlen=self.len)
 
@@ -187,12 +197,12 @@ class InfoWindow(ScreenHandle):
         self.data.append(f"> {str(value)}")
 
     def draw(self, canvas):
-        self.fill(colors["wooden"])
+        self.fill((0, 0, 0, 0))
         size = self.get_size()
 
         font = pygame.font.SysFont("comicsansms", 10)
         for i, text in enumerate(self.data):
-            self.blit(font.render(text, True, colors["black"]),
+            self.blit(font.render(text, False, colors["black"]),
                       (5, 20 + 18 * i))
 
         super().draw(canvas)
@@ -316,4 +326,60 @@ class BattleWindow(ScreenHandle):
                     butt[self.engine.active_button].get_width() + 16, butt[self.engine.active_button].get_height() + 16)
             pygame.draw.rect(self, (255, 0, 0), rect, width=3, border_radius=4)
 
+        super().draw(canvas)
+
+class DecorWindow(ScreenHandle):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.image = pygame.image.load(os.path.join("texture","bg.png")).convert_alpha()
+
+    def connect_engine(self, engine):
+        self.engine = engine
+        super().connect_engine(engine)
+
+    def draw(self, canvas):
+        self.blit(self.image, (0,0))
+        super().draw(canvas)
+
+
+class MinimapWindow(GameSurface):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.map_left = 0
+        self.map_top = 0
+        self.sprite_size = 160//20
+
+    def connect_engine(self, engine):
+        self.game_engine = engine
+        super().connect_engine(engine)
+
+    def map_to_surface(self, coords):
+        return ((coords[0] - self.map_left) * self.sprite_size, 
+                (coords[1] - self.map_top) * self.sprite_size)
+
+    def draw_background(self, canvas):
+        self.fill((0, 0, 0, 0))
+
+    def draw_point(self, x, y, color):
+        pygame.draw.rect(self, color, (x, y, self.sprite_size, self.sprite_size), 1)
+
+#    def draw_hero(self):
+#        self.draw_point(self.game_engine.hero.position[0], self.game_engine.hero.position[1], (255, 255, 255))
+
+#    def draw_objects(self, sprite=None, coord=None):
+        # Each object is being drawn by itself according to class hierarchy in Objects.py
+#        for obj in self.game_engine.objects:
+            #self.draw_point(j, i, (255,255,255))
+#            pass
+
+    def draw(self, canvas):
+        self.win_width = self.get_width() // self.sprite_size
+        self.win_height = self.get_height() // self.sprite_size
+
+        self.game_engine.map.draw(self) # FIXME расчет смещений делать в карте?
+        self.draw_objects()
+        self.draw_hero()
+ 
         super().draw(canvas)

@@ -94,7 +94,7 @@ while engine.working:
             #create_game()
             pass
 
-    gameDisplay.blit(engine.drawer, (0, 0))
+    gameDisplay.blit(engine.drawer, (5, 35))
     engine.drawer.draw(gameDisplay)
 
     pygame.display.flip()
