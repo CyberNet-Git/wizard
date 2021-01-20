@@ -63,7 +63,6 @@ class GameEngine:
             self.level_list = yaml.load(file.read())['levels']
             self.level_list.append({'map': Service.EndMap.Map(), 'obj': Service.EndMap.Objects()})
 
-        self.reload_game()
         self.drawer = \
                         SE.GameSurface((640, 480), pygame.SRCALPHA, (650, 500),
                             SE.MinimapWindow((136, 96), pygame.SRCALPHA, (0, 0),
@@ -76,6 +75,7 @@ class GameEngine:
                                                         (0, 0))
                         )))))))
         self.drawer.connect_engine(self)
+        self.reload_game()
 
     def set_sprite_size(self, sprite_size):
         self.sprite_size = sprite_size
@@ -94,6 +94,7 @@ class GameEngine:
 
         self.objects = []
         self.add_objects(generator['obj'].get_objects(_map))
+        self.notify(f'Level {self.level} started')
 
     # OBSERVER methods
     def subscribe(self, obj):
