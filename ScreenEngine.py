@@ -347,39 +347,8 @@ class MinimapWindow(GameSurface):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.map_left = 0
-        self.map_top = 0
         self.sprite_size = 160//20
-
-    def connect_engine(self, engine):
-        self.game_engine = engine
-        super().connect_engine(engine)
-
-    def map_to_surface(self, coords):
-        return ((coords[0] - self.map_left) * self.sprite_size, 
-                (coords[1] - self.map_top) * self.sprite_size)
 
     def draw_background(self, canvas):
         self.fill((0, 0, 0, 0))
 
-    def draw_point(self, x, y, color):
-        pygame.draw.rect(self, color, (x, y, self.sprite_size, self.sprite_size), 1)
-
-#    def draw_hero(self):
-#        self.draw_point(self.game_engine.hero.position[0], self.game_engine.hero.position[1], (255, 255, 255))
-
-#    def draw_objects(self, sprite=None, coord=None):
-        # Each object is being drawn by itself according to class hierarchy in Objects.py
-#        for obj in self.game_engine.objects:
-            #self.draw_point(j, i, (255,255,255))
-#            pass
-
-    def draw(self, canvas):
-        self.win_width = self.get_width() // self.sprite_size
-        self.win_height = self.get_height() // self.sprite_size
-
-        self.game_engine.map.draw(self) # FIXME расчет смещений делать в карте?
-        self.draw_objects()
-        self.draw_hero()
- 
-        super().draw(canvas)
