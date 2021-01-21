@@ -31,6 +31,7 @@ class GameEngine:
 
         #FIXME возможно лучше создание объектов вынести в отдельный метод
         Sprite.provider.load_ugly_sprites(Service.object_list)
+        Sprite.provider.load_beauty_sprites()
 
         self.hero = Objects.Hero(Objects.Hero.BASE_STATS, Sprite.provider.get_sprite('hero', 'level1', const.FRONT))
         self.hero.level = 1
@@ -86,7 +87,7 @@ class GameEngine:
     def reload_game(self):
         level_list_max = len(self.level_list) - 1
         self.level += 1
-        self.hero.position = [1, 1]
+        
 
         generator = self.level_list[min(self.level, level_list_max)]
         _map = generator['map'] #.get_map()
@@ -94,6 +95,7 @@ class GameEngine:
 
         self.objects = []
         self.add_objects(generator['obj'].get_objects(_map))
+        self.hero.position = list(generator['obj'].get_coord(_map))
         self.notify(f'Level {self.level} started')
 
     # OBSERVER methods

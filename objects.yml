@@ -63,3 +63,9 @@ enemies:
     intelligence: 50
     luck: 5
     experience: 1000
+hero:
+  Hero:
+    anisprite: [Hero-0.png]
+  Berserk:
+    anisprite: [Hero-1.png]
+

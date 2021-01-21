@@ -1,6 +1,7 @@
 import os
 import pygame
 import random
+import time
 
 import const
 
@@ -17,8 +18,12 @@ class Sprite:
         if filename is not None and os.path.exists(filename):
             self._image = pygame.image.load(filename).convert_alpha()
         else:
-            self._image = pygame.Surface((const.DEFAULT_SPRITE_SIZE, const.DEFAULT_SPRITE_SIZE))
+            self._image = pygame.Surface((const.DEFAULT_SPRITE_SIZE, const.DEFAULT_SPRITE_SIZE)).convert_alpha()
         self.clear_cache()
+
+    def blit(self, image):
+        #s = pygame.transform.scale(image, (self.size))
+        self._image = pygame.transform.scale(image, (self.size))
 
     def clear_cache(self):
         self.size = self._image.get_size()
@@ -78,6 +83,14 @@ class SquareMultiSprite(Sprite):
             self.cache[cache_index] = pygame.transform.scale(img, (size, size))
         return self.cache[cache_index]
 
+    def get_sprite_object(self, x, y):
+        rect = (x * self.sprite_size, y * self.sprite_size, 
+                    self.sprite_size, self.sprite_size)
+        img = self._image.subsurface(rect)
+        s = SquareSprite()
+        s.blit(img)
+        return s
+
     def set_active_sprite(self, active_sprite=None):
         if active_sprite is None:
             active_sprite = (0,0)
@@ -94,14 +107,15 @@ class AnimatedSprite(SquareMultiSprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.mode = self.ROUNDTRIP
-        self.animation = self.TIMER
+        self.animation = self.MANUAL
         self.timer = time.monotonic()
         self.step = 1
 
     def get_sprite(self, size=None):
         sprite = super().get_sprite(size)
         if self.animation == self.MANUAL:
-            self.next_frame()
+            pass
+            #self.next_frame()
         elif self.animation == self.TIMER \
                 and time.monotonic() - self.timer > 1/5: # hardcoded 0.2 sec timeframe
             self.next_frame()
@@ -158,7 +172,7 @@ class SpriteProvider:
 
     def __init__(self, size=const.DEFAULT_SPRITE_SIZE):
         self.size = size
-        self.look = self.OLD
+        self.look = self.NEW
         self.sprites = {
             self.NEW: {'hero':{}, 'map':{}, 'objects':{}, 'enemies':{}, 'ally':{}}, # tilemaps
             self.OLD:{'hero':{}, 'map':{}, 'objects':{}, 'enemies':{}, 'ally':{}} # old sprites
@@ -186,23 +200,33 @@ class SpriteProvider:
         for t in objects: # [objects, enemies, ally]
             for name in objects[t]:
                 # t - тип (ally, enemies) + objects[t] - Имя + состояние - всегда неопределено
-                filename = objects[t][name]['sprite'][0]
-                self.sprites[self.OLD][t][name] = {None: SquareSprite(os.path.join("texture", t, filename ))}
+                try:
+                    filename = objects[t][name]['sprite'][0]
+                    self.sprites[self.OLD][t][name] = {None: SquareSprite(os.path.join("texture", t, filename ))}
+                except:
+                    pass
 
     def load_beauty_sprites(self):
         # load Hero
-        with open(os.path.join("texture","hero","hero.yaml"), "r") as file:
-            sprites = yaml.load(file.read())
-        for t in sprites: # [objects, enemies, ally]
-            for name in sprites[t]:
+        #with open(os.path.join("texture","hero","hero.yaml"), "r") as file:
+        #    sprites = yaml.load(file.read())
+        for t in self.objects: # [objects, enemies, ally]
+            for name in self.objects[t]:
                 # t - тип (ally, enemies) + objects[t] - Имя + состояние - всегда неопределено
-                filename = sprites[t][name]['sprite'][0]
-                self.sprites[self.NEW][t][name] = {None: Sprite(os.path.join("texture", t, filename ))}
+                for filename in self.objects[t][name]['anisprite']: 
+                    self.sprites[self.NEW][t][name] = {None: AnimatedSprite(64, os.path.join("texture", t, filename ))}
 
         # load Map
-        # load Objects
-        # load Ally
-        # load Enemies
+        self.map_sprites = SquareMultiSprite(64, os.path.join("texture", "map", "map.png" ))
+        self.sprites[self.NEW]['map'][const.WALL] = {}
+        self.sprites[self.NEW]['map'][const.FLOOR] = {}
+        self.sprites[self.NEW]['map'][const.BORDER] = {}
+        self.sprites[self.NEW]['map'][const.GRASS] = {}
+        for t in self.sprites[self.NEW]['map']:
+            for i in range(8):
+                self.sprites[self.NEW]['map'][t][i] = self.map_sprites.get_sprite_object(i, t // 10)
+                self.sprites[self.NEW]['map'][t][i].clear_cache()
+
         pass
 
     def get_sprite(self, what, name, view):

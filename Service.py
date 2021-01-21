@@ -31,15 +31,77 @@ class MapFactory(yaml.YAMLObject):
 
 class AbstractMap(ABC):
     def __init__(self):
+        # TODO generate map using "@life" 
+        # https://gamedevelopment.tutsplus.com/tutorials/generate-random-cave-levels-using-cellular-automata--gamedev-9664
         self.num = random.randint(0,7)# sprite template number from SpriteProvider
-        self.Map = [[0 for _ in range(41)] for _ in range(41)]
+        self.chanceToStartAlive = 0.35
+        self.death_limit = 3
+        self.birth_limit = 4
+
+        self.generateMap()
+
+        #self.Map = [[const.FLOOR + self.num for _ in range(41)] for _ in range(41)]
         for i in range(41):
             for j in range(41):
                 if i == 0 or j == 0 or i == 40 or j == 40:
-                    self.Map[j][i] = const.BORDER
+                    self.Map[j][i] = const.BORDER + self.num
+                elif self.Map[j][i] == 0:
+                    self.Map[j][i] = const.FLOOR + self.num
                 else:
-                    self.Map[j][i] = ([const.WALL] + [const.FLOOR + random.randint(0, 2) for _ in range(8) ] )[random.randint(0, 8)]
+                    self.Map[j][i] = const.WALL + self.num
+    
+    def map_init(self):
+        for i, r in enumerate(self.Map):
+            for j, c in enumerate(r):
+                self.Map[i][j] = 1 if random.random() < self.chanceToStartAlive else 0
 
+    def generateMap(self):
+        #Create a new map
+        self.Map = [[0 for _ in range(41)] for _ in range(41)]
+        self.map_init()
+        # And now run the simulation for a set number of steps
+        for i in range(3):
+            self.Map = self.doSimulationStep()
+
+    def doSimulationStep(self):
+        new_map = self.Map.copy()
+        # Loop over each row and column of the map
+        for i, x in enumerate(self.Map):
+            for j, y in enumerate(x):
+                nbs = self.countAliveNeighbours(i, j)
+                # The new value is based on our simulation rules
+                # First, if a cell is alive but has too few neighbours, kill it.
+                if self.Map[i][j]:
+                    if nbs < self.death_limit:
+                        new_map[i][j] = 0
+                    else:
+                        new_map[i][j] = 1
+                # Otherwise, if the cell is dead now, check if it has the right number of neighbours to be 'born'
+                else:
+                    if nbs > self.birth_limit:
+                        new_map[i][j] = 1
+                    else:
+                        new_map[i][j] = 0
+        return new_map
+
+    # Returns the number of cells in a ring around (x,y) that are alive.
+    def countAliveNeighbours(self, x, y):
+        count = 0
+        for i in [-1, 0, 1]:
+            for j in [-1, 0, 1]:
+                neighbour_x = x + i
+                neighbour_y = y + j
+                # If we're looking at the middle point
+                if i == 0 and j == 0:
+                    # Do nothing, we don't want to add ourselves in!
+                    pass
+                # In case the index we're looking at it off the edge of the map
+                elif neighbour_x < 0 or neighbour_y < 0 or neighbour_y >= len(self.Map) or neighbour_x >= len(self.Map[0]):
+                    count += 1
+                # Otherwise, a normal check of the neighbour
+                elif self.Map[neighbour_x][neighbour_y]:
+                    count += 1
+        return count
 
     def get_map(self):
         return self.Map
@@ -91,7 +153,7 @@ class AbstractObjects(ABC):
         intersect = True
         while intersect:
             intersect = False
-            if _map.Map[coord[1]][coord[0]] != const.FLOOR:
+            if _map.Map[coord[1]][coord[0]] // 10 * 10 != const.FLOOR :
                 intersect = True
                 coord = (random.randint(1, 39),
                             random.randint(1, 39))
