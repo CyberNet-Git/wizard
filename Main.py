@@ -1,3 +1,13 @@
+#!/usr/bin/python
+## Course: OOP and patterns in Python PL
+## Week: 5
+## Programming task: final project is to make a game "Wizard in a cave"
+## Student: v.v.panfilov@gmail.com
+##          https://www.coursera.org/user/2b245f54c4482a14f06c1497686513b5
+##
+## Code progressing at https://github.com/CyberNet-Git/wizard
+##
+
 import pygame
 import os
 
@@ -9,7 +19,7 @@ import const
 
 
 pygame.init()
-gameDisplay = pygame.display.set_mode(const.SCREEN_DIM)
+gameDisplay = pygame.display.set_mode(const.SCREEN_DIM, pygame.NOFRAME)
 pygame.display.set_caption("MyRPG")
 KEYBOARD_CONTROL = True
 
@@ -18,6 +28,7 @@ if not KEYBOARD_CONTROL:
     answer = np.zeros(4, dtype=float)
 
 
+closebtn = pygame.Rect(754, 2, 43, 43)
 size = 32 # 60
 
 engine = GameEngine(32)
@@ -28,6 +39,14 @@ while engine.working:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 engine.working = False
+
+            if event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 1:
+                    if closebtn.collidepoint(event.pos):
+                        engine.working = False
+                elif event.button == 3:
+                    pass
+
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_h:

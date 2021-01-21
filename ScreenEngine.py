@@ -253,78 +253,80 @@ class HelpWindow(ScreenHandle):
                           (150, 50 + 30 * i))
         super().draw(canvas)
 
-class BattleWindow(ScreenHandle):
 
+class DialogWindow(ScreenHandle):
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.btn_hl = pygame.Surface((168,47), pygame.SRCALPHA)
+        self.btn_hl.fill((60,40,20,255))
+        self.decor = Sprite.Sprite(os.path.join("texture","dlg.png"))
+        self.font1 = pygame.font.SysFont("comicsansms", 18)
+        self.font2 = pygame.font.SysFont("comicsansms", 18)
 
     def connect_engine(self, engine):
         self.engine = engine
         super().connect_engine(engine)
 
-    def draw(self, canvas):
+    def draw_window(self):
         alpha = 0
-        if self.engine.show_battle:
+        if False: # если скрыто окно диалога
             alpha = 255
-        self.fill((65, 32, 2, alpha))
+        self.blit(self.decor.get_sprite(), (0, 0))
         text_color = (215, 134, 0)
         size = self.get_size()
-        fontH = pygame.font.SysFont("algerian", 48)
-        fontB = pygame.font.SysFont("algerian", 24)
-        font1 = pygame.font.SysFont("comicsansms", 18)
-        font2 = pygame.font.SysFont("comicsansms", 18)
-        if self.engine.show_battle:
-            # рамка
-            pygame.draw.lines(self, (255, 0, 0, 255), True, [
-                              (0, 0), (self.get_width(), 0), 
-                              (self.get_width(), self.get_height()), (0, self.get_height())], 5)
 
-            def draw_centered(surf, offx, offy):
-                self.blit( surf, ((self.get_width() - surf.get_width())//2 + offx, offy))
-            battle =  fontH.render('* BATTLE *', True, (text_color))
-            draw_centered(battle, 0, 20)
+    def draw_centered(self, surf, offx, offy):
+        self.blit( surf, ((self.get_width() - surf.get_width())//2 + offx, offy))
+
+    def btn_highlight(self):
+        buttxy0 = [(78,262), (263,262)]
+        self.blit(self.btn_hl,buttxy0[self.engine.active_button], special_flags=pygame.BLEND_RGB_ADD)
+
+
+class BattleWindow(DialogWindow):
+
+    def draw(self, canvas):
+        alpha = 255 if self.engine.show_battle else 0
+        self.fill((0, 0, 0, alpha))
+
+        if self.engine.show_battle:
+            self.draw_window()
+
+            stats_off = 90
 
             text = []
-            text.append(font1.render('HP', True, (text_color)))
-            text.append(font1.render('Strength', True, (text_color)))
-            text.append(font1.render('Endurance', True, (text_color)))
-            text.append(font1.render('Intellect', True, (text_color)))
-            text.append(font1.render('Luck', True, (text_color)))
+            text.append(self.font1.render('HP', True, (text_color)))
+            text.append(self.font1.render('Strength', True, (text_color)))
+            text.append(self.font1.render('Endurance', True, (text_color)))
+            text.append(self.font1.render('Intellect', True, (text_color)))
+            text.append(self.font1.render('Luck', True, (text_color)))
             for i,t in enumerate(text):
-                draw_centered(t, 0, 100 + 22 * i)
+                self.draw_centered(t, 0, 120 + 22 * i)
 
             # Hero stats
-            text[0] = font2.render(str(self.engine.hero.hp), True, ((128, 128, 255)))
-            text[1] = font2.render(str(self.engine.hero.stats['strength']), True, ((128, 128, 255)))
-            text[2] = font2.render(str(self.engine.hero.stats['endurance']), True, ((128, 128, 255)))
-            text[3] = font2.render(str(self.engine.hero.stats['intelligence']), True, ((128, 128, 255)))
-            text[4] = font2.render(str(self.engine.hero.stats['luck']), True, ((128, 128, 255)))
+            text[0] = self.font2.render(str(self.engine.hero.hp), True, ((128, 128, 255)))
+            text[1] = self.font2.render(str(self.engine.hero.stats['strength']), True, ((128, 128, 255)))
+            text[2] = self.font2.render(str(self.engine.hero.stats['endurance']), True, ((128, 128, 255)))
+            text[3] = self.font2.render(str(self.engine.hero.stats['intelligence']), True, ((128, 128, 255)))
+            text[4] = self.font2.render(str(self.engine.hero.stats['luck']), True, ((128, 128, 255)))
             for i,t in enumerate(text):
-                draw_centered(t, -100, 100 + 22 * i)
+                self.draw_centered(t, -stats_off, 120 + 22 * i)
 
             # Enemy stats
-            text[0] = font2.render(str(self.engine.hero.hp), True, ((128, 128, 255)))
-            text[1] = font2.render(str(self.engine.hero.stats['strength']), True, ((128, 128, 255)))
-            text[2] = font2.render(str(self.engine.hero.stats['endurance']), True, ((128, 128, 255)))
-            text[3] = font2.render(str(self.engine.hero.stats['intelligence']), True, ((128, 128, 255)))
-            text[4] = font2.render(str(self.engine.hero.stats['luck']), True, ((128, 128, 255)))
+            text[0] = self.font2.render(str(self.engine.hero.hp), True, ((128, 128, 255)))
+            text[1] = self.font2.render(str(self.engine.hero.stats['strength']), True, ((128, 128, 255)))
+            text[2] = self.font2.render(str(self.engine.hero.stats['endurance']), True, ((128, 128, 255)))
+            text[3] = self.font2.render(str(self.engine.hero.stats['intelligence']), True, ((128, 128, 255)))
+            text[4] = self.font2.render(str(self.engine.hero.stats['luck']), True, ((128, 128, 255)))
             for i,t in enumerate(text):
-                draw_centered(t, 100, 100 + 22 * i)
+                self.draw_centered(t, stats_off, 120 + 22 * i)
 
             # draw icons of Hero & Enemy
-            self.blit(self.engine.hero.sprite.get_sprite(128),(40, 80))
-            self.blit(self.engine.hero.sprite.get_sprite(128),(self.get_width() - 40 - 128, 80))
+            self.blit(self.engine.hero.sprite.get_sprite(74),(37, 107))
+            self.blit(self.engine.hero.sprite.get_sprite(74),(self.get_width() - 112, 107))
 
-            # buttons
-            butt = [0,1]
-            butt[0] = fontB.render('ATTACK!', True, (65, 32, 2), text_color)
-            butt[1] = fontB.render('LEAVE...', True, (65, 32, 2), text_color)
-            draw_centered(butt[0], -100, 250)
-            draw_centered(butt[1], 100, 250)
-            rect = ((self.get_width() - butt[self.engine.active_button].get_width())//2 \
-                    + [-100, 100][self.engine.active_button] - 8, 250 - 8, 
-                    butt[self.engine.active_button].get_width() + 16, butt[self.engine.active_button].get_height() + 16)
-            pygame.draw.rect(self, (255, 0, 0), rect, width=3, border_radius=4)
+            self.btn_highlight()
 
         super().draw(canvas)
 
@@ -347,7 +349,7 @@ class MinimapWindow(GameSurface):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.sprite_size = 160//20
+        self.sprite_size = 8
 
     def draw_background(self, canvas):
         self.fill((0, 0, 0, 0))
