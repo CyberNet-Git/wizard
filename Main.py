@@ -69,12 +69,13 @@ while engine.working:
                 if event.key == pygame.K_ESCAPE:
                     engine.working = False
 
-                if engine.show_battle:
+                if engine.interaction:
                     if event.key in [pygame.K_LEFT, pygame.K_RIGHT]:
                         engine.active_button ^= 1
                     elif event.key in [pygame.K_RETURN, pygame.K_SPACE]:
-                        engine.show_battle = not engine.show_battle
-                        #iteration += 1
+                        engine.user_choice = engine.active_button
+                        engine.interact()
+
                 elif engine.game_process:
                     if event.key == pygame.K_UP:
                         engine.move_up()

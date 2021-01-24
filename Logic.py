@@ -44,20 +44,33 @@ class GameEngine:
             'restore_hp': self.restore_hp
         }
 
+        object_list_descriptions = {
+            'reload_game': 'Exits to next level',
+            'add_gold': 'Chest of gold. May be you have to be reacher or cured',
+            'apply_blessing': 'Blessing adds you some strength and endurance. Be careful, you can become a berserk!',
+            'remove_effect': 'Remove last applied effect.',
+            'restore_hp': 'Restores hero hit points (HP).'
+        }
+
         self.static = Service.object_list['objects']
         for name in self.static:
             obj = self.static[name]
+            obj['descr'] = object_list_descriptions[obj['action']]
             obj['action'] = object_list_actions[obj['action']]
+            obj['name'] = name
 
         self.ally = Service.object_list['ally']
         for name in self.ally:
             obj = self.ally[name]
+            obj['descr'] = object_list_descriptions[obj['action']]
             obj['action'] = object_list_actions[obj['action']]
+            obj['name'] = name
 
         self.enemies = Service.object_list['enemies']
         for name in self.enemies:
             obj = self.enemies[name]
-            #obj['action'] = object_list_actions[obj['action']]
+            obj['name'] = name
+            obj['descr'] = name
 
         # Load and create levels from YAML 
         with open("levels.yml", "r") as file:
@@ -71,10 +84,11 @@ class GameEngine:
                                     SE.ProgressBar((640, 600), pygame.SRCALPHA, (660, 30),
                                         SE.InfoWindow((140, 440), pygame.SRCALPHA, (50, 50),
                                             SE.HelpWindow((700, 500), pygame.SRCALPHA, (80, 100),
-                                                SE.BattleWindow((511, 358), pygame.SRCALPHA, (0, 0),
-                                                    SE.ScreenHandle(
-                                                        (0, 0))
-                        )))))))
+                                                SE.BattleWindow((511, 358), pygame.SRCALPHA, (80, 100),
+                                                    SE.DealWindow((511, 358), pygame.SRCALPHA, (0, 0),
+                                                        SE.ScreenHandle(
+                                                            (0, 0))
+                        ))))))))
         self.drawer.connect_engine(self)
         self.reload_game()
 
@@ -87,7 +101,10 @@ class GameEngine:
     def reload_game(self):
         level_list_max = len(self.level_list) - 1
         self.level += 1
-        
+        self.show_battle = False
+        self.user_choice = const.NO_CHOICE
+        self.interaction = const.UI_NONE
+
 
         generator = self.level_list[min(self.level, level_list_max)]
         _map = generator['map'] #.get_map()
@@ -96,6 +113,7 @@ class GameEngine:
         self.objects = []
         self.add_objects(generator['obj'].get_objects(_map))
         self.hero.position = list(generator['obj'].get_coord(_map))
+        self.hero.sprite.set_view(const.FRONT)
         self.notify(f'Level {self.level} started')
 
     # OBSERVER methods
@@ -117,8 +135,55 @@ class GameEngine:
     def interact(self):
         for obj in self.objects:
             if list(obj.position) == self.hero.position:
-                self.delete_object(obj)
-                obj.interact(self)
+                self.interactee = obj
+
+                if isinstance(obj, Objects.Enemy):
+                    if self.interaction == const.UI_BATTLE:
+                        if self.user_choice == const.NO_CHOICE:
+                            return
+                        elif self.user_choice == const.ATTACK:
+                            obj.interact(self)
+                            if obj.hp <= 0:
+                                self.hero.exp += obj.xp
+                                self.score += obj.xp // 10
+                                self.interactee = None
+                                self.delete_object(obj)
+                                self.interaction = const.UI_NONE
+                                self.user_choice = const.NO_CHOICE
+                            if self.hero.hp <= 0:
+                                self.hero.hp = 1
+                                self.hero.position = self.last_position.copy()
+                                self.interactee = None
+                                self.interaction = const.UI_NONE
+                                self.user_choice = const.NO_CHOICE
+                        elif self.user_choice == const.LEAVE:
+                            self.hero.position = self.last_position.copy()
+                            self.interaction = const.UI_NONE
+                            self.user_choice = const.NO_CHOICE
+                    else:
+                        self.interaction = const.UI_BATTLE
+                        self.active_button = const.ATTACK
+
+                if isinstance(obj, Objects.Ally) and obj.action not in (self.reload_game, self.add_gold):
+                    if self.interaction == const.UI_DEAL:
+                        if self.user_choice == const.NO_CHOICE:
+                            return
+                        elif self.user_choice == const.DEAL:
+                            obj.interact(self)
+                            self.interactee = None
+                            self.delete_object(obj)
+                            self.score += 100
+                        elif self.user_choice == const.LEAVE:
+                            self.hero.position = self.last_position.copy()
+                            #self.hero.stats['endurance'] -= 1
+                        self.interaction = const.UI_NONE
+                        self.user_choice = const.NO_CHOICE
+                    else:
+                        self.interaction = const.UI_DEAL
+                        self.active_button = const.DEAL
+                elif isinstance(obj, Objects.Ally) and obj.action in (self.reload_game, self.add_gold):
+                    obj.interact(self)
+                    self.delete_object(obj)
 
     # MOVEMENT
     def move_up(self):
@@ -126,28 +191,36 @@ class GameEngine:
         if not self.map.can_move(self.hero.position[1] - 1, self.hero.position[0]):
             return
         #if self.interact((self.hero.position[0], self.hero.position[1] - 1)):
+        self.last_position = self.hero.position.copy()
         self.hero.position[1] -= 1
-        #self.interact()
+        self.hero.heading = const.BACK
+        self.interact()
 
     def move_down(self):
         self.score -= 0.02
         if not self.map.can_move(self.hero.position[1] + 1,self.hero.position[0]):
             return
+        self.last_position = self.hero.position.copy()
         self.hero.position[1] += 1
+        self.hero.heading = const.FRONT
         self.interact()
 
     def move_left(self):
         self.score -= 0.02
         if not self.map.can_move(self.hero.position[1], self.hero.position[0] - 1):
             return
+        self.last_position = self.hero.position.copy()
         self.hero.position[0] -= 1
+        self.hero.heading = const.LEFT
         self.interact()
 
     def move_right(self):
         self.score -= 0.02
         if not self.map.can_move(self.hero.position[1], self.hero.position[0] + 1):
             return
+        self.last_position = self.hero.position.copy()
         self.hero.position[0] += 1
+        self.hero.heading = const.RIGHT
         self.interact()
 
     # MAP
@@ -162,7 +235,10 @@ class GameEngine:
         self.objects.extend(objects)
 
     def delete_object(self, obj):
-        self.objects.remove(obj)
+        try:
+            self.objects.remove(obj)
+        except:
+            pass
 
     # ACTIONS
     def add_gold(self):
@@ -171,17 +247,24 @@ class GameEngine:
             self.hero = [Objects.Weakness, Objects.GoInsane][random.randint(0,1)](self.hero)
             self.notify("You were cursed")
         else:
-            self.score += 0.1
+            self.score += 1
             gold = int(random.randint(10, 1000) * (1.1**(self.hero.level - 1)))
             self.hero.gold += gold
             self.notify(f"{gold} gold added")
-    
+
+    def calc_price(self, action):
+        if action == self.apply_blessing:
+            return int(20 * 1.5**self.level) - 2 * self.hero.stats["intelligence"]
+        if action == self.remove_effect:
+            return int(10 * 1.5**self.level) - 2 * self.hero.stats["intelligence"]
+        return 0
+        
+
     def apply_blessing(self):
         #TODO implement it
-        if self.hero.gold >= int(20 * 1.5**self.level) - 2 * self.hero.stats["intelligence"]:
-            self.score += 0.2
-            self.hero.gold -= int(20 * 1.5**self.level) - \
-                2 * self.hero.stats["intelligence"]
+        if self.hero.gold >= self.calc_price(self.apply_blessing):
+            self.score += 20
+            self.hero.gold -= self.calc_price(self.apply_blessing)
             if random.randint(0, 1) == 0:
                 self.hero = Objects.Blessing(self.hero)
                 self.notify("Blessing applied")
@@ -189,20 +272,22 @@ class GameEngine:
                 self.hero = Objects.Berserk(self.hero)
                 self.notify("Berserk applied")
         else:
+            self.notify('Not enougth gold')
             self.score -= 0.1
-        pass
     
     def remove_effect(self):
         #TODO implement it
-        if self.hero.gold >= int(10 * 1.5**self.level) - 2 * self.hero.stats["intelligence"] and "base" in dir(self.hero):
-            self.hero.gold -= int(10 * 1.5**self.level) - \
-                2 * self.hero.stats["intelligence"]
+        if self.hero.gold >= self.calc_price(self.remove_effect) and "base" in dir(self.hero):
+            self.hero.gold -= self.calc_price(self.remove_effect)
             self.hero = self.hero.base
             self.hero.calc_max_HP()
             self.notify("Effect removed")
-        pass
+            self.score += 10
+        else:
+            self.notify('Not enougth gold')
+            self.score -= 0.5
     
     def restore_hp(self):
-        self.score += 0.1
+        self.score += 50
         self.hero.hp = self.hero.max_hp
         self.notify("HP restored")

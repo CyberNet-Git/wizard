@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 import pygame
 import random
 
+import const
+
 
 class Interactive(ABC):
 
@@ -13,12 +15,14 @@ class Interactive(ABC):
 class AbstractObject(ABC):
     def __init__(self):
         self.sprite = None
+        self.name = ''
+        self.descr = ''
 
     def draw(self, game_surface):
         sprite = self.sprite.get_sprite(game_surface.sprite_size)
         game_surface.blit(sprite, game_surface.map_to_surface(self.position) )
 
-class StaticObject(AbstractObject):
+class StaticObject(AbstractObject, Interactive):
     pass
 
 class Ally(AbstractObject, Interactive):
@@ -40,9 +44,31 @@ class Creature(AbstractObject):
         self.position = position
         self.calc_max_HP()
         self.hp = self.max_hp
+        self._heading = const.FRONT
+
+    @property
+    def heading(self):
+        return self._heading
+
+    @heading.setter
+    def heading(self, value):
+        self._heading = value
+        try:
+            self.sprite.set_view(value)
+        except:
+            pass
 
     def calc_max_HP(self):
         self.max_hp = 5 + self.stats["endurance"] * 2
+
+    def get_stats(self):
+        return [
+            str(self.hp),
+            str(self.stats['strength']),
+            str(self.stats['endurance']),
+            str(self.stats['intelligence']),
+            str(self.stats['luck'])
+        ]
 
 
 class Hero(Creature):
@@ -77,8 +103,6 @@ class Hero(Creature):
             self.stats["endurance"] += 2
             self.calc_max_HP()
             self.hp = self.max_hp
-
-
 
 
 class Effect(Hero):
@@ -151,37 +175,62 @@ class Enemy(Interactive,Creature):
         self.xp = xp
 
     def interact(self,engine):
-        engine.hero.exp += self.xp
-        d = engine.hero.stats['strength'] - self.stats['endurance']
-        if d >= 0:
-            u = d * engine.hero.stats['luck'] / max(engine.hero.stats['luck'], self.stats['luck']) \
-                  * engine.hero.stats['intelligence'] / max(engine.hero.stats['intelligence'], self.stats['intelligence'])
+        # Урон врагу
+        h = engine.hero.stats
+        e = self.stats
+
+        def calc_strike(a,b):
+            d = a['strength'] / b['endurance']
+            d = d if d < 1 else 1
+            l = a['luck'] / b['luck']
+            l = l if l < 1 else 1
+            i = a['intelligence'] / b['intelligence']
+            i = i if i < 1 else 1
+            return a['strength'] * d * l * i
+
+
+        # if d >= 0:
+        #     u = d * engine.hero.stats['strength'] / max(engine.hero.stats['luck'], self.stats['luck']) \
+        #           * engine.hero.stats['intelligence'] / max(engine.hero.stats['intelligence'], self.stats['intelligence'])
+        #     # u = d * engine.hero.stats['luck'] / max(engine.hero.stats['luck'], self.stats['luck']) \
+        #     #       * engine.hero.stats['intelligence'] / max(engine.hero.stats['intelligence'], self.stats['intelligence'])
+        # else:
+        #     u = abs(d) * engine.hero.stats['luck'] / max(engine.hero.stats['luck'], self.stats['luck']) \
+        #           * engine.hero.stats['intelligence'] / max(engine.hero.stats['intelligence'], self.stats['intelligence']) \
+        #           * engine.hero.stats['strength'] / self.stats['endurance']
+        self.hp -= round(min(self.hp, calc_strike(h,e)))
+
+        # Урон герою
+        # d = (self.stats['endurance'] - engine.hero.stats['strength']) \
+        #     / (engine.hero.stats['strength'] + self.stats['endurance'])
+        # if d >= 0:
+        #     u = d * self.stats['strength'] * self.stats['intelligence'] / max(engine.hero.stats['luck'], self.stats['luck'])
+        #     # u = d * self.stats['luck'] / max(engine.hero.stats['luck'], self.stats['luck']) \
+        #     #       * self.stats['intelligence'] / max(engine.hero.stats['intelligence'], self.stats['intelligence'])
+        # else:
+        #     u = abs(d) * self.stats['strength'] ** 2 * self.stats['luck'] / max(engine.hero.stats['luck'], self.stats['luck']) / engine.hero.stats['endurance']
+        #     # u = abs(d) * self.stats['luck'] / max(engine.hero.stats['luck'], self.stats['luck']) \
+        #     #       * self.stats['intelligence'] / max(engine.hero.stats['intelligence'], self.stats['intelligence']) \
+        #     #       * self.stats['endurance'] / engine.hero.stats['strength']
+        engine.hero.hp -= round(min(engine.hero.hp, calc_strike(e,h)))
+#        engine.hero.level_up()
+
+    def draw(self, game_surface):
+        sign = lambda a: (a>0) - (a<0)
+        h = game_surface.game_engine.hero.position
+        s = self.position
+        if abs(s[0] - h[0]) > abs(s[1] - h[1]):
+            self.heading = [const.RIGHT, 0, const.LEFT][sign(s[0] - h[0]) + 1]
         else:
-            u = abs(d) * engine.hero.stats['luck'] / max(engine.hero.stats['luck'], self.stats['luck']) \
-                  * engine.hero.stats['intelligence'] / max(engine.hero.stats['intelligence'], self.stats['intelligence']) \
-                  * engine.hero.stats['strength'] / self.stats['endurance']
-        self.hp -= round(min(self.hp, u))
-
-        d = self.stats['strength'] - engine.hero.stats['endurance']
-        if d >= 0:
-            u = d * self.stats['luck'] / max(engine.hero.stats['luck'], self.stats['luck']) \
-                  * self.stats['intelligence'] / max(engine.hero.stats['intelligence'], self.stats['intelligence'])
-        else:
-            u = abs(d) * self.stats['luck'] / max(engine.hero.stats['luck'], self.stats['luck']) \
-                  * self.stats['intelligence'] / max(engine.hero.stats['intelligence'], self.stats['intelligence']) \
-                  * self.stats['endurance'] / engine.hero.stats['strength']
-        engine.hero.hp -= round(min(engine.hero.hp, u))
-
-
-        #engine.hero.level_up()
-
+            self.heading = [const.FRONT, 0, const.BACK][sign(s[1] - h[1]) + 1]
+        super().draw(game_surface)
 
 
 class Berserk(Effect):
     def apply_effect(self):
         self.stats["strength"] *= 2
         self.stats["endurance"] += 2 * random.randint(0,self.stats["luck"])
-        self.stats["intelligence"] //= 2
+        self.stats["intelligence"] -= 1
 
 
 class Blessing(Effect):

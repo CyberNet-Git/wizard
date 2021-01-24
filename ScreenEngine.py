@@ -4,6 +4,7 @@ import math
 import os
 
 import Sprite
+import const
 
 colors = {
     "black": (215, 134, 0, 255),
@@ -260,21 +261,26 @@ class DialogWindow(ScreenHandle):
         super().__init__(*args, **kwargs)
         self.btn_hl = pygame.Surface((168,47), pygame.SRCALPHA)
         self.btn_hl.fill((60,40,20,255))
-        self.decor = Sprite.Sprite(os.path.join("texture","dlg.png"))
         self.font1 = pygame.font.SysFont("comicsansms", 18)
-        self.font2 = pygame.font.SysFont("comicsansms", 18)
+        self.font2 = pygame.font.SysFont("comicsansms", 24)
+        self.text_color = (215, 134, 0)
+        self.stat_color = (128, 128, 255)
+        self.dtype = -1
 
     def connect_engine(self, engine):
         self.engine = engine
         super().connect_engine(engine)
 
-    def draw_window(self):
-        alpha = 0
-        if False: # если скрыто окно диалога
-            alpha = 255
-        self.blit(self.decor.get_sprite(), (0, 0))
-        text_color = (215, 134, 0)
-        size = self.get_size()
+    def draw(self, canvas):
+        alpha = 255 if self.engine.interaction == self.dtype else 0
+        self.fill((0, 0, 0, alpha))
+
+        if self.engine.interaction == self.dtype:
+            self.blit(self.decor.get_sprite(), (0, 0))
+            self.draw_content()
+            self.btn_highlight()
+
+        super().draw(canvas)
 
     def draw_centered(self, surf, offx, offy):
         self.blit( surf, ((self.get_width() - surf.get_width())//2 + offx, offy))
@@ -283,52 +289,72 @@ class DialogWindow(ScreenHandle):
         buttxy0 = [(78,262), (263,262)]
         self.blit(self.btn_hl,buttxy0[self.engine.active_button], special_flags=pygame.BLEND_RGB_ADD)
 
+    def draw_text(self, text, font, offs_x, offs_y, color):
+        for i,t in enumerate(text):
+            image = font.render(t, True, color)
+            self.draw_centered(image, offs_x, offs_y + font.size('M')[1] * i)
+    
+    def draw_content(self):
+        pass
+
+
 
 class BattleWindow(DialogWindow):
 
-    def draw(self, canvas):
-        alpha = 255 if self.engine.show_battle else 0
-        self.fill((0, 0, 0, alpha))
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.decor = Sprite.Sprite(os.path.join("texture","dlg.png"))
+        self.dtype = const.UI_BATTLE
 
-        if self.engine.show_battle:
-            self.draw_window()
+    def draw_content(self):
+        stats_off = 90
+        text = ['HP', 'Strength', 'Endurance', 'Intellect', 'Luck' ]
+        self.draw_text(text, self.font1, 0, 120, self.text_color)
 
-            stats_off = 90
+        # Hero stats
+        text = self.engine.hero.get_stats()
+        self.draw_text(text, self.font1, -stats_off, 120, self.stat_color)
 
-            text = []
-            text.append(self.font1.render('HP', True, (text_color)))
-            text.append(self.font1.render('Strength', True, (text_color)))
-            text.append(self.font1.render('Endurance', True, (text_color)))
-            text.append(self.font1.render('Intellect', True, (text_color)))
-            text.append(self.font1.render('Luck', True, (text_color)))
-            for i,t in enumerate(text):
-                self.draw_centered(t, 0, 120 + 22 * i)
+        # Interactee stats
+        text = self.engine.interactee.get_stats()
+        self.draw_text(text, self.font1, stats_off, 120, self.stat_color)
 
-            # Hero stats
-            text[0] = self.font2.render(str(self.engine.hero.hp), True, ((128, 128, 255)))
-            text[1] = self.font2.render(str(self.engine.hero.stats['strength']), True, ((128, 128, 255)))
-            text[2] = self.font2.render(str(self.engine.hero.stats['endurance']), True, ((128, 128, 255)))
-            text[3] = self.font2.render(str(self.engine.hero.stats['intelligence']), True, ((128, 128, 255)))
-            text[4] = self.font2.render(str(self.engine.hero.stats['luck']), True, ((128, 128, 255)))
-            for i,t in enumerate(text):
-                self.draw_centered(t, -stats_off, 120 + 22 * i)
+        # draw icons of Hero & Interactee
+        self.engine.hero.heading = const.RIGHT
+        self.engine.interactee.heading = const.LEFT 
+        self.blit(self.engine.hero.sprite.get_sprite(74),(37, 107))
+        self.blit(self.engine.interactee.sprite.get_sprite(74),(self.get_width() - 112, 107))
 
-            # Enemy stats
-            text[0] = self.font2.render(str(self.engine.hero.hp), True, ((128, 128, 255)))
-            text[1] = self.font2.render(str(self.engine.hero.stats['strength']), True, ((128, 128, 255)))
-            text[2] = self.font2.render(str(self.engine.hero.stats['endurance']), True, ((128, 128, 255)))
-            text[3] = self.font2.render(str(self.engine.hero.stats['intelligence']), True, ((128, 128, 255)))
-            text[4] = self.font2.render(str(self.engine.hero.stats['luck']), True, ((128, 128, 255)))
-            for i,t in enumerate(text):
-                self.draw_centered(t, stats_off, 120 + 22 * i)
 
-            # draw icons of Hero & Enemy
-            self.blit(self.engine.hero.sprite.get_sprite(74),(37, 107))
-            self.blit(self.engine.hero.sprite.get_sprite(74),(self.get_width() - 112, 107))
 
-            self.btn_highlight()
+class DealWindow(DialogWindow):
 
-        super().draw(canvas)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.decor = Sprite.Sprite(os.path.join("texture","deal.png"))
+        self.dtype = const.UI_DEAL
+
+    def draw_content(self):
+        text = ['']
+        i = 0
+        for w in self.engine.interactee.descr.split():
+            if len(text[i]) + len(w) < 30:
+                text[i] = ' '.join([text[i], w])
+            else:
+                text.append(w)
+                i += 1
+        text.append( 'Buy it for' )
+        self.draw_text(text, self.font1, 0, 90, self.text_color)
+        self.draw_text(
+            [str(self.engine.calc_price(self.engine.interactee.action)) + ' GP'],
+            self.font2, 0, 90 + self.font1.size('M')[1]*len(text), self.text_color)
+
+        # draw icons of Hero & Interactee
+        self.engine.hero.heading = const.RIGHT
+        self.engine.interactee.heading = const.LEFT
+        self.blit(self.engine.hero.sprite.get_sprite(74),(37, 107))
+        self.blit(self.engine.interactee.sprite.get_sprite(74),(self.get_width() - 112, 107))
+
 
 class DecorWindow(ScreenHandle):
 

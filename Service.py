@@ -34,41 +34,40 @@ class AbstractMap(ABC):
         # TODO generate map using "@life" 
         # https://gamedevelopment.tutsplus.com/tutorials/generate-random-cave-levels-using-cellular-automata--gamedev-9664
         self.num = random.randint(0,7)# sprite template number from SpriteProvider
-        self.chanceToStartAlive = 0.35
+        self.chance = 0.35
         self.death_limit = 3
         self.birth_limit = 4
 
-        self.generateMap()
+        self.generate_map()
 
-        #self.Map = [[const.FLOOR + self.num for _ in range(41)] for _ in range(41)]
-        for i in range(41):
-            for j in range(41):
-                if i == 0 or j == 0 or i == 40 or j == 40:
+        for i in range(len(self.Map)):
+            for j in range(len(self.Map[0])):
+                if i == 0 or j == 0 or i == len(self.Map)-1 or j == len(self.Map[0])-1:
                     self.Map[j][i] = const.BORDER + self.num
                 elif self.Map[j][i] == 0:
                     self.Map[j][i] = const.FLOOR + self.num
                 else:
                     self.Map[j][i] = const.WALL + self.num
     
-    def map_init(self):
-        for i, r in enumerate(self.Map):
-            for j, c in enumerate(r):
-                self.Map[i][j] = 1 if random.random() < self.chanceToStartAlive else 0
-
-    def generateMap(self):
+    def generate_map(self):
         #Create a new map
-        self.Map = [[0 for _ in range(41)] for _ in range(41)]
+        self.Map = [[0 for _ in range(const.MAP_WIDTH + 1)] for _ in range(const.MAP_HEIGHT + 1)]
         self.map_init()
         # And now run the simulation for a set number of steps
         for i in range(3):
-            self.Map = self.doSimulationStep()
+            self.Map = self.gen_step()
 
-    def doSimulationStep(self):
+    def map_init(self):
+        for i, r in enumerate(self.Map):
+            for j, c in enumerate(r):
+                self.Map[i][j] = 1 if random.random() < self.chance else 0
+
+    def gen_step(self):
         new_map = self.Map.copy()
         # Loop over each row and column of the map
         for i, x in enumerate(self.Map):
             for j, y in enumerate(x):
-                nbs = self.countAliveNeighbours(i, j)
+                nbs = self.count_neighbours(i, j)
                 # The new value is based on our simulation rules
                 # First, if a cell is alive but has too few neighbours, kill it.
                 if self.Map[i][j]:
@@ -85,7 +84,7 @@ class AbstractMap(ABC):
         return new_map
 
     # Returns the number of cells in a ring around (x,y) that are alive.
-    def countAliveNeighbours(self, x, y):
+    def count_neighbours(self, x, y):
         count = 0
         for i in [-1, 0, 1]:
             for j in [-1, 0, 1]:
@@ -115,11 +114,17 @@ class AbstractMap(ABC):
                         img = sprite.get_sprite(game_surface.sprite_size)
                         game_surface.blit(img, game_surface.map_to_surface((i, j)) )
                     except:
-                        pass
+                        sprite = Sprite.provider.get_sprite('map', self.Map[0][0] - self.Map[0][0] % 10, self.Map[0][0] % 10 )
+                        img = sprite.get_sprite(game_surface.sprite_size)
+                        game_surface.blit(img, game_surface.map_to_surface((i, j)) )
         else:
             self.fill(colors["white"])
     
     def can_move(self, x, y):
+        if x >= len(self.Map):
+            return False
+        if y >= len(self.Map[0]):
+            return False
         return self.Map[x][y] - self.Map[x][y] % 10 not in (const.WALL, const.BORDER)
 
 
@@ -149,20 +154,23 @@ class AbstractObjects(ABC):
         self.make_config('enemies', config)
 
     def get_coord(self, _map):
-        coord = (random.randint(1, 39), random.randint(1, 39))
+        w = len(_map.Map[0])
+        h = len(_map.Map)
+        coord = (random.randint(1, w - 1), 
+                 random.randint(1, h - 1))
         intersect = True
         while intersect:
             intersect = False
             if _map.Map[coord[1]][coord[0]] // 10 * 10 != const.FLOOR :
                 intersect = True
-                coord = (random.randint(1, 39),
-                            random.randint(1, 39))
+                coord = (random.randint(1, w - 1),
+                         random.randint(1, h - 1))
                 continue
             for obj in self.objects:
                 if coord == obj.position or coord == (1, 1):
                     intersect = True
-                    coord = (random.randint(1, 39),
-                                random.randint(1, 39))
+                    coord = (random.randint(1, w - 1),
+                             random.randint(1, h - 1))
         return coord
 
     def get_defaults(self, object_type):
@@ -182,18 +190,19 @@ class AbstractObjects(ABC):
 
     def make_objects(self, _map):
         for object_type in self.config:
-            for obj_name in self.config[object_type]: #  object_list_prob[]:
+            for obj_name in self.config[object_type]: 
                 count = self.config[object_type][obj_name]
                 prop = object_list[object_type][obj_name]
-                # prop[sprite] - это только имя файла.  СПРАЙТ нужно еще получить тут.
+                
                 for i in range(count):
                     sprite = Sprite.provider.get_sprite(object_type, obj_name, None)
                     if object_type == 'enemies':
-                        self.objects.append(Objects.Enemy(
-                            sprite, prop, prop['experience'], self.get_coord(_map)))
+                        obj = Objects.Enemy(sprite, prop, prop['experience'], self.get_coord(_map))
                     else:
-                        self.objects.append(Objects.Ally(
-                            sprite, prop['action'], self.get_coord(_map)))
+                        obj = Objects.Ally(sprite, prop['action'], self.get_coord(_map))
+                    obj.descr = prop['descr']
+                    obj.name = prop['name']
+                    self.objects.append(obj)
 
 
 class EndMap(MapFactory):
@@ -219,11 +228,11 @@ class EndMap(MapFactory):
             for i in self.Map:
                 for j in range(len(i)):
                     if i[j] == '0':
-                        i[j] = const.BORDER
+                        i[j] = const.BORDER + self.num
                     elif i[j] == '#':
-                        i[j] = const.WALL
+                        i[j] = const.WALL + self.num
                     else:
-                        i[j] = const.FLOOR + random.randint(0,2)
+                        i[j] = const.FLOOR + self.num
          
         def get_map(self):
             return self.Map
@@ -295,23 +304,6 @@ class SpecialMap(MapFactory):
 
     class Map(AbstractMap):
         def __init__(self):
-            #TODO load special map from yaml
-            self.Map = ['0000000000000000000000000000000000000000',
-                        '0                                      0',
-                        '0                                      0',
-                        '0  00000  00000  00000  0    0         0',
-                        '0  0      0   0  0      0    0         0',
-                        '0  0      0   0  00000  0    0         0',
-                        '0  0      0   0  0      0    0         0',
-                        '0  00000  0   0  00000   00000         0',
-                        '0                              0       0'] + \
-                       ['0                                      0'] * 30 + \
-                       ['0000000000000000000000000000000000000000']
-                        
-            self.Map = list(map(list, self.Map))
-            for i in self.Map:
-                for j in range(len(i)):
-                    i[j] = const.WALL if i[j] == '0' else const.FLOOR
             super().__init__()
          
         def get_map(self):
