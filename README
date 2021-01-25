@@ -14,4 +14,21 @@
 
 Кратко - все. Будут вопросы - задавайте.
 Код размещен на гитхабе https://github.com/CyberNet-Git/wizard
+
+Требуются следующие модули:
+import pygame
+import random
+import yaml
+import os
+import abc
+import time
+import collections
+import math
+Их можно уставить так:
+pip install pygame
+pip install <далее по списку>
+
+Игрушка-погремушка запускается так:
+python Main.py
+
 Искренне ваш. )
