@@ -254,4 +254,4 @@ class Academic(Effect):
     def apply_effect(self):
         self.stats["intelligence"] *= round(self.stats["intelligence"] \
             * (1 + random.random()/2 \
-                 + random.random(0,self.stats["luck"])/self.stats["luck"]))
+                 + random.random()*self.stats["luck"]))
