@@ -9,8 +9,8 @@ objects:
     sprite: [chest.png]
     anisprite: [Chest-0.png]
     action: add_gold
-    min-count: 0
-    max-count: 3
+    min-count: 50
+    max-count: 53
 ally:
   bless:
     sprite: [NPC_1.png]

@@ -197,6 +197,10 @@ class AbstractObjects(ABC):
                         obj = Objects.Enemy(sprite, prop, prop['experience'], self.get_coord(_map))
                     else:
                         obj = Objects.Ally(sprite, prop['action'], self.get_coord(_map))
+                        try:
+                            obj.sprite.set_view(random.randint(0,3))
+                        except:
+                            pass
                     obj.descr = prop['descr']
                     obj.name = prop['name']
                     self.objects.append(obj)

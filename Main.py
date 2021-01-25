@@ -29,15 +29,18 @@ if not KEYBOARD_CONTROL:
 closebtn = pygame.Rect(754, 2, 43, 43)
 size = 32 # 60
 
-engine = GameEngine(32)
-movement= dict(zip(
+def game_init():
+    global engine, movement, direction
+    engine = GameEngine(size)
+    movement= dict(zip(
+            [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT],
+            [engine.move_up, engine.move_down, engine.move_left, engine.move_right]
+        ))
+    direction = dict(zip(
         [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT],
-        [engine.move_up, engine.move_down, engine.move_left, engine.move_right]
+        [(0,-1),(0,1),(-1,0),(1,0)]
     ))
-direction = dict(zip(
-    [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT],
-    [(0,-1),(0,1),(-1,0),(1,0)]
-))
+game_init()
 
 while engine.working:
 
@@ -68,7 +71,16 @@ while engine.working:
                     #size = 32 if size == 48 else size
                     engine.set_sprite_size(size)
                 if event.key == pygame.K_r:
-                    engine = GameEngine(size)
+                    game_init()
+                    # engine = GameEngine(size)
+                    # movement= dict(zip(
+                    #         [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT],
+                    #         [engine.move_up, engine.move_down, engine.move_left, engine.move_right]
+                    #     ))
+                    # direction = dict(zip(
+                    #     [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT],
+                    #     [(0,-1),(0,1),(-1,0),(1,0)]
+                    # ))
                 if event.key == pygame.K_m:
                     engine.show_battle = not engine.show_battle
                     engine.active_button = 0

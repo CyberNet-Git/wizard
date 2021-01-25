@@ -245,6 +245,10 @@ class Weakness(Effect):
         self.stats["endurance"] -= round(self.stats["strength"] * random.random() / 2)
 
 # Additional effects. Task #3
+class GoInsane(Effect):
+    def apply_effect(self):
+        self.stats["intelligence"] -= round(self.stats["intelligence"] * random.random()/4)
+
 class Academic(Effect):
     def apply_effect(self):
         self.stats["intelligence"] *= round(self.stats["intelligence"] \
