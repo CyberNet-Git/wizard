@@ -105,6 +105,7 @@ class Hero(Creature):
             self.hp = self.max_hp
 
 
+
 class Effect(Hero):
 
     def __init__(self, base):

@@ -87,7 +87,5 @@ enemies:
     experience: 2000
 hero:
   Hero:
-    anisprite: [Hero-0.png]
-  Berserk:
-    anisprite: [Hero-1.png]
+    anisprite: [Hero-0.png, Hero-1.png, Hero-2.png, Hero-3.png, Hero-4.png, Hero-5.png, Hero-6.png]
 

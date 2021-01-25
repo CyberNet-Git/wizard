@@ -202,8 +202,12 @@ class SpriteProvider:
         for t in self.objects: # [objects, enemies, ally]
             for name in self.objects[t]:
                 # t - type (ally, enemies) + objects[t] - Name + state(None for single image)
-                for filename in self.objects[t][name]['anisprite']: 
-                    self.sprites[self.NEW][t][name] = {None: AnimatedSprite(64, os.path.join("texture", t, filename ))}
+                for i, filename in enumerate(self.objects[t][name]['anisprite']):
+                    s = AnimatedSprite(64, os.path.join("texture", t, filename ))
+                    try:
+                        self.sprites[self.NEW][t][name][i] = s
+                    except:
+                        self.sprites[self.NEW][t][name] = {i: s}
                     # uncomment 2 following lines for turn on animation on objects
                     #for s in self.sprites[self.NEW][t][name]:
                     #    self.sprites[self.NEW][t][name][s].animation = AnimatedSprite.TIMER
@@ -218,6 +222,7 @@ class SpriteProvider:
             for i in range(8):
                 self.sprites[self.NEW]['map'][t][i] = self.map_sprites.get_sprite_object(i, t // 10)
                 self.sprites[self.NEW]['map'][t][i].clear_cache()
+        pass # for breakpoint only
 
     def get_sprite(self, what, name, view):
         try:

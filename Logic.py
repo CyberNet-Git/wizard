@@ -103,6 +103,7 @@ class GameEngine:
     def reload_game(self):
         level_list_max = len(self.level_list) - 1
         self.level += 1
+
         self.show_battle = False
         self.user_choice = const.NO_CHOICE
         self.interaction = const.UI_NONE
@@ -147,6 +148,8 @@ class GameEngine:
                             obj.interact(self)
                             if obj.hp <= 0:
                                 self.hero.exp += obj.xp
+                                self.hero.sprite = Sprite.provider.get_sprite(
+                                    'hero','Hero', min(6, self.hero.level))
                                 self.score += obj.xp // 10
                                 self.interactee = None
                                 self.delete_object(obj)
