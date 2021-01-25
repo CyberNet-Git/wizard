@@ -18,7 +18,7 @@ class GameEngine:
     subscribers = set()
     score = 0.
     game_process = True
-    show_help = False
+    show_help = True
     show_battle = False
 
     def __init__(self, sprite_size):
@@ -85,7 +85,7 @@ class GameEngine:
                                 SE.DecorWindow((800, 600), pygame.SRCALPHA, (0, 0),
                                     SE.ProgressBar((640, 600), pygame.SRCALPHA, (660, 30),
                                         SE.InfoWindow((140, 440), pygame.SRCALPHA, (0, 0),
-                                            SE.HelpWindow((800, 00), pygame.SRCALPHA, (80, 100),
+                                            SE.HelpWindow((800, 600), pygame.SRCALPHA, (80, 100),
                                                 SE.BattleWindow((511, 358), pygame.SRCALPHA, (80, 100),
                                                     SE.DealWindow((511, 358), pygame.SRCALPHA, (0, 0),
                                                         SE.ScreenHandle(

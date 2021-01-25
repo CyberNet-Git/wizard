@@ -60,6 +60,8 @@ while engine.working:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_h:
                     engine.show_help = not engine.show_help
+                if engine.show_help:
+                    continue
                 if event.key == pygame.K_KP_PLUS:
                     size = engine.sprite_size
                     size = size + 16 if size < 64 else size
@@ -72,15 +74,6 @@ while engine.working:
                     engine.set_sprite_size(size)
                 if event.key == pygame.K_r:
                     game_init()
-                    # engine = GameEngine(size)
-                    # movement= dict(zip(
-                    #         [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT],
-                    #         [engine.move_up, engine.move_down, engine.move_left, engine.move_right]
-                    #     ))
-                    # direction = dict(zip(
-                    #     [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT],
-                    #     [(0,-1),(0,1),(-1,0),(1,0)]
-                    # ))
                 if event.key == pygame.K_m:
                     engine.show_battle = not engine.show_battle
                     engine.active_button = 0
