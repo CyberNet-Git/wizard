@@ -10,7 +10,6 @@ provider = None
 class Sprite:
 
     def __init__(self, *args, **kwargs):
-        print('Sprite: ', args, kwargs)
         if len(args) == 0:
             filename = kwargs['filename'] if 'filename' in kwargs else None
         else:
