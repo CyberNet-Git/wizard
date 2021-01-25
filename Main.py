@@ -5,7 +5,7 @@
 ## Student: v.v.panfilov@gmail.com
 ##          https://www.coursera.org/user/2b245f54c4482a14f06c1497686513b5
 ##
-## Code progressing at https://github.com/CyberNet-Git/wizard
+## Code repository at https://github.com/CyberNet-Git/wizard
 ##
 
 import pygame
@@ -17,7 +17,6 @@ from Logic import GameEngine
 import Service
 import const
 
-
 pygame.init()
 gameDisplay = pygame.display.set_mode(const.SCREEN_DIM, pygame.NOFRAME)
 pygame.display.set_caption("MyRPG")
@@ -27,11 +26,18 @@ if not KEYBOARD_CONTROL:
     import numpy as np
     answer = np.zeros(4, dtype=float)
 
-
 closebtn = pygame.Rect(754, 2, 43, 43)
 size = 32 # 60
 
 engine = GameEngine(32)
+movement= dict(zip(
+        [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT],
+        [engine.move_up, engine.move_down, engine.move_left, engine.move_right]
+    ))
+direction = dict(zip(
+    [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT],
+    [(0,-1),(0,1),(-1,0),(1,0)]
+))
 
 while engine.working:
 
@@ -54,12 +60,12 @@ while engine.working:
                 if event.key == pygame.K_KP_PLUS:
                     size = engine.sprite_size
                     size = size + 16 if size < 64 else size
-                    size = 64 if size == 48 else size
+                    #size = 64 if size == 48 else size
                     engine.set_sprite_size(size)
                 if event.key == pygame.K_KP_MINUS:
                     size = engine.sprite_size
                     size = size - 16 if size > 16 else size
-                    size = 32 if size == 48 else size
+                    #size = 32 if size == 48 else size
                     engine.set_sprite_size(size)
                 if event.key == pygame.K_r:
                     engine = GameEngine(size)
@@ -76,19 +82,13 @@ while engine.working:
                         engine.user_choice = engine.active_button
                         engine.interact()
 
+                # process Hero movement events
                 elif engine.game_process:
-                    if event.key == pygame.K_UP:
-                        engine.move_up()
-                        #iteration += 1
-                    elif event.key == pygame.K_DOWN:
-                        engine.move_down()
-                        #iteration += 1
-                    elif event.key == pygame.K_LEFT:
-                        engine.move_left()
-                        #iteration += 1
-                    elif event.key == pygame.K_RIGHT:
-                        engine.move_right()
-                        #iteration += 1
+                    if event.key in movement.keys():
+                        if movement[event.key]():
+                            pass
+                        elif event.mod & pygame.KMOD_CTRL:
+                            engine.break_wall(direction[event.key])
 
                     if event.key == pygame.K_RETURN:
                         #create_game()

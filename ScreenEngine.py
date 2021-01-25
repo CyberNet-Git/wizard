@@ -27,7 +27,6 @@ class ScreenHandle(pygame.Surface):
             self.successor = None
             self.next_coord = (0, 0)
         super().__init__(*args, **kwargs)
-        #self.fill(colors["wooden"])
 
     def draw(self, canvas):
         if self.successor is not None:
@@ -46,37 +45,36 @@ class GameSurface(ScreenHandle):
         self.map_left = 0
         self.map_top = 0
         self.sprite_size = 32
-        self.fill(colors["white"])
+        #self.fill(colors["white"])
 
     def connect_engine(self, engine):
         self.game_engine = engine
         super().connect_engine(engine)
 
     def map_to_surface(self, coords):
+        """
+        Converts game map coords to screen coords 
+        """
         return ((coords[0] - self.map_left) * self.sprite_size, 
                 (coords[1] - self.map_top) * self.sprite_size)
 
-    def draw_background(self, canvas):
+    def draw_background(self):
+        """
+        Draws the game surface background. Source - leftmost corner of map (border sprite)
+        """
         sprite = Sprite.provider.get_sprite('map', self.game_engine.map.Map[0][0], self.game_engine.map.num)
         for i in range(0,self.win_width+1):
             for j in range(0,self.win_height+1):
                self.blit(sprite.get_sprite(), (i * self.sprite_size, j * self.sprite_size) )
-        #self.fill(colors["white"])
 
     def draw_hero(self):
+        # hero draws itself on top of game surface
+        self.game_engine.hero.sprite.animation = Sprite.AnimatedSprite.TIMER
         self.game_engine.hero.draw(self)
 
     def draw_map(self):
-        if self.game_engine.map:
-            for i in range(self.map_left, self.map_left + self.win_width + 1):
-                for j in range(self.map_top, self.map_top + self.win_height + 1):
-                    try:
-                        self.blit(self.game_engine.map[j][i][0], self.map_to_surface((i, j)) )
-                    except:
-                        #sprite = sp.get self.game_engine.map.Map[j][i]
-                        self.blit(self.game_engine.map.Map[j][i], self.map_to_surface((i, j)) )
-        else:
-            self.fill(colors["white"])
+        # map draws itself on top of game surface
+        self.game_engine.map.draw(self)
 
     def draw_objects(self, sprite=None, coord=None):
         # Each object is being drawn by itself according to class hierarchy in Objects.py
@@ -84,6 +82,9 @@ class GameSurface(ScreenHandle):
             obj.draw(self)
 
     def draw(self, canvas):
+        """
+        Draw contents of game surface.
+        """
         size = self.sprite_size
         hero_pos = self.game_engine.hero.position
 
@@ -94,22 +95,24 @@ class GameSurface(ScreenHandle):
         map_width = len(self.game_engine.map.Map[0])
         map_height = len(self.game_engine.map.Map)
 
+        # calculate left and top offsets for visible part of the game map
         left = hero_pos[0] - half_win_width if hero_pos[0] >= half_win_width else 0
         top = hero_pos[1] - half_win_height if hero_pos[1] >= half_win_height else 0
         left = max(0,map_width - half_win_width*2) if hero_pos[0] > map_width - half_win_width else left
         top = max(0, map_height - half_win_height*2) if hero_pos[1] > map_height - half_win_height else top
+
+        # win_width and win_height measured in game map cells
         self.map_left = int(round(left))
         self.map_top = int(round(top))
         self.win_width = int(round(win_width))
         self.win_height = int(round(win_height))
 
-#        self.draw_map()
-        self.draw_background(canvas)
-        self.game_engine.map.draw(self)
+        # draw window contents
+        self.draw_background()
+        self.draw_map()
         self.draw_objects()
         self.draw_hero()
-        #s = Sprite.provider.get_sprite('hero', 'level1', None).get_sprite(32)
-        #canvas.blit(self, (0,0))
+
         super().draw(canvas)
 
 
@@ -117,7 +120,6 @@ class ProgressBar(ScreenHandle):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        #self.fill(colors["wooden"])
 
     def connect_engine(self, engine):
         self.engine = engine
@@ -322,8 +324,10 @@ class BattleWindow(DialogWindow):
         # draw icons of Hero & Interactee
         self.engine.hero.heading = const.RIGHT
         self.engine.interactee.heading = const.LEFT 
+        self.engine.interactee.sprite.animation = Sprite.AnimatedSprite.TIMER
         self.blit(self.engine.hero.sprite.get_sprite(74),(37, 107))
         self.blit(self.engine.interactee.sprite.get_sprite(74),(self.get_width() - 112, 107))
+        self.engine.interactee.sprite.animation = Sprite.AnimatedSprite.MANUAL
 
 
 
@@ -352,8 +356,10 @@ class DealWindow(DialogWindow):
         # draw icons of Hero & Interactee
         self.engine.hero.heading = const.RIGHT
         self.engine.interactee.heading = const.LEFT
+        self.engine.interactee.sprite.animation = Sprite.AnimatedSprite.TIMER
         self.blit(self.engine.hero.sprite.get_sprite(74),(37, 107))
         self.blit(self.engine.interactee.sprite.get_sprite(74),(self.get_width() - 112, 107))
+        self.engine.interactee.sprite.animation = Sprite.AnimatedSprite.MANUAL
 
 
 class DecorWindow(ScreenHandle):
@@ -377,6 +383,6 @@ class MinimapWindow(GameSurface):
         super().__init__(*args, **kwargs)
         self.sprite_size = 8
 
-    def draw_background(self, canvas):
+    def draw_background(self):
         self.fill((0, 0, 0, 0))
 

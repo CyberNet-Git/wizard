@@ -105,15 +105,18 @@ class GameEngine:
         self.user_choice = const.NO_CHOICE
         self.interaction = const.UI_NONE
 
-
         generator = self.level_list[min(self.level, level_list_max)]
-        _map = generator['map'] #.get_map()
+        _map = generator['map']
         self.load_map(_map)
 
         self.objects = []
         self.add_objects(generator['obj'].get_objects(_map))
         self.hero.position = list(generator['obj'].get_coord(_map))
-        self.hero.sprite.set_view(const.FRONT)
+        try:
+            self.hero.sprite.set_view(const.FRONT)
+        except:
+            # plain sprites have not this method
+            pass
         self.notify(f'Level {self.level} started')
 
     # OBSERVER methods
@@ -129,9 +132,6 @@ class GameEngine:
             i.update(message)
 
     # HERO
-    def add_hero(self, hero):
-        self.hero = hero
-
     def interact(self):
         for obj in self.objects:
             if list(obj.position) == self.hero.position:
@@ -185,43 +185,80 @@ class GameEngine:
                     obj.interact(self)
                     self.delete_object(obj)
 
+    def break_wall(self, direction):
+        x = self.hero.position[0] + direction[0]
+        y = self.hero.position[1] + direction[1]
+        if self.map.Map[y][x] - self.map.Map[y][x] % 10 == const.WALL:
+            self.map.Map[y][x] = self.map.Map[self.hero.position[1]][self.hero.position[0]]
+
+        # if self.interaction == const.UI_WALL:
+        #     if self.user_choice == const.NO_CHOICE:
+        #         return
+        #     elif self.user_choice == const.ATTACK:
+        #         obj.interact(self)
+        #         if obj.hp <= 0:
+        #             self.hero.exp += obj.xp
+        #             self.score += obj.xp // 10
+        #             self.interactee = None
+        #             self.delete_object(obj)
+        #             self.interaction = const.UI_NONE
+        #             self.user_choice = const.NO_CHOICE
+        #         if self.hero.hp <= 0:
+        #             self.hero.hp = 1
+        #             self.hero.position = self.last_position.copy()
+        #             self.interactee = None
+        #             self.interaction = const.UI_NONE
+        #             self.user_choice = const.NO_CHOICE
+        #     elif self.user_choice == const.LEAVE:
+        #         self.hero.position = self.last_position.copy()
+        #         self.interaction = const.UI_NONE
+        #         self.user_choice = const.NO_CHOICE
+        # else:
+        #     self.interaction = const.UI_WALL
+        #     self.active_button = const.BREACH
+
+
+
     # MOVEMENT
     def move_up(self):
         self.score -= 0.02
         if not self.map.can_move(self.hero.position[1] - 1, self.hero.position[0]):
-            return
-        #if self.interact((self.hero.position[0], self.hero.position[1] - 1)):
+            return False
         self.last_position = self.hero.position.copy()
         self.hero.position[1] -= 1
         self.hero.heading = const.BACK
         self.interact()
+        return True
 
     def move_down(self):
         self.score -= 0.02
         if not self.map.can_move(self.hero.position[1] + 1,self.hero.position[0]):
-            return
+            return False
         self.last_position = self.hero.position.copy()
         self.hero.position[1] += 1
         self.hero.heading = const.FRONT
         self.interact()
+        return True
 
     def move_left(self):
         self.score -= 0.02
         if not self.map.can_move(self.hero.position[1], self.hero.position[0] - 1):
-            return
+            return False
         self.last_position = self.hero.position.copy()
         self.hero.position[0] -= 1
         self.hero.heading = const.LEFT
         self.interact()
-
+        return True
+        
     def move_right(self):
         self.score -= 0.02
         if not self.map.can_move(self.hero.position[1], self.hero.position[0] + 1):
-            return
+            return False
         self.last_position = self.hero.position.copy()
         self.hero.position[0] += 1
         self.hero.heading = const.RIGHT
         self.interact()
+        return True
 
     # MAP
     def load_map(self, game_map):

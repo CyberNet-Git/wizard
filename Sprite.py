@@ -160,13 +160,6 @@ class SpriteProvider:
 
         Иерархию наследования можно увидеть из исходного кода выше.
     """
-    GRASS = 0
-    WALL = 1
-    FLOOR = 2
-    BORDER = 3
-    CHEST = 4
-    STAIRS = 5
-    
     NEW = True
     OLD = False
 
@@ -179,10 +172,9 @@ class SpriteProvider:
         }
     
     def load_ugly_sprites(self, objects):
-        #FIXME загрузить тут убогие спрайты из шаблона проекта чтобы только показать, что мы это могём
-        # - не могём, а мОгем, -- (С) Маэстро. "В бой идут одни старики" :)
         self.objects = objects
         
+        # Структура каталога:
         # Герой + Внешний вид (с мечом, копьем, эффектом) + направление взгляда
         # Карта + Тип (трава, стена, вода, пол) + внешний вид
         # Объекты + Имя объекта (сундук, лестница) + состояние (закрыт, открыт)
@@ -207,16 +199,16 @@ class SpriteProvider:
                     pass
 
     def load_beauty_sprites(self):
-        # load Hero
-        #with open(os.path.join("texture","hero","hero.yaml"), "r") as file:
-        #    sprites = yaml.load(file.read())
         for t in self.objects: # [objects, enemies, ally]
             for name in self.objects[t]:
-                # t - тип (ally, enemies) + objects[t] - Имя + состояние - всегда неопределено
+                # t - type (ally, enemies) + objects[t] - Name + state(None for single image)
                 for filename in self.objects[t][name]['anisprite']: 
                     self.sprites[self.NEW][t][name] = {None: AnimatedSprite(64, os.path.join("texture", t, filename ))}
+                    # uncomment 2 following lines for turn on animation on objects
+                    #for s in self.sprites[self.NEW][t][name]:
+                    #    self.sprites[self.NEW][t][name][s].animation = AnimatedSprite.TIMER
 
-        # load Map
+        # load Map sprites
         self.map_sprites = SquareMultiSprite(64, os.path.join("texture", "map", "map.png" ))
         self.sprites[self.NEW]['map'][const.WALL] = {}
         self.sprites[self.NEW]['map'][const.FLOOR] = {}
@@ -226,8 +218,6 @@ class SpriteProvider:
             for i in range(8):
                 self.sprites[self.NEW]['map'][t][i] = self.map_sprites.get_sprite_object(i, t // 10)
                 self.sprites[self.NEW]['map'][t][i].clear_cache()
-
-        pass
 
     def get_sprite(self, what, name, view):
         try:

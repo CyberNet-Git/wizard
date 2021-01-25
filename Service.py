@@ -8,9 +8,6 @@ import const
 import Objects
 import Sprite
 
-OBJECT_TEXTURE = os.path.join("texture", "objects")
-ENEMY_TEXTURE = os.path.join("texture", "enemies")
-ALLY_TEXTURE = os.path.join("texture", "ally")
 
 DEFAULT_SPRITE_SIZE = 32
 STATIC_TEXTURES = os.path.join("texture", "tilemap.png")
@@ -31,14 +28,66 @@ class MapFactory(yaml.YAMLObject):
 
 class AbstractMap(ABC):
     def __init__(self):
-        # TODO generate map using "@life" 
-        # https://gamedevelopment.tutsplus.com/tutorials/generate-random-cave-levels-using-cellular-automata--gamedev-9664
-        self.num = random.randint(0,7)# sprite template number from SpriteProvider
+        self.num = random.randint(0,7) # sprite template number from SpriteProvider
         self.chance = 0.35
         self.death_limit = 3
         self.birth_limit = 4
 
         self.generate_map()
+
+    
+    def generate_map(self):
+        # Create a new map
+        # Game-of-life based simulation for map generation
+        # https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
+
+        # Returns the number of cells in a ring around (x,y) that are alive.
+        def count_neighbours(x, y):
+            count = 0
+            for i in [-1, 0, 1]:
+                for j in [-1, 0, 1]:
+                    neighbour_x = x + i
+                    neighbour_y = y + j
+                    # If we're looking at the middle point
+                    if i == 0 and j == 0:
+                        # Do nothing, we don't want to add ourselves in
+                        pass
+                    # In case the index we're looking at it off the edge of the map
+                    elif neighbour_x < 0 or neighbour_y < 0 or neighbour_y >= len(self.Map) or neighbour_x >= len(self.Map[0]):
+                        count += 1
+                    # Otherwise, a normal check of the neighbour
+                    elif self.Map[neighbour_x][neighbour_y]:
+                        count += 1
+            return count
+
+        def gen_step():
+            new_map = self.Map.copy()
+            for i, x in enumerate(self.Map):
+                for j, y in enumerate(x):
+                    nbs = count_neighbours(i, j)
+                    # The new value is based on our simulation rules
+                    # First, if a cell is alive but has too few neighbours, kill it.
+                    if self.Map[i][j]:
+                        if nbs < self.death_limit:
+                            new_map[i][j] = 0
+                        else:
+                            new_map[i][j] = 1
+                    # Otherwise, if the cell is dead now, check if it has the right number of neighbours to be 'born'
+                    else:
+                        if nbs > self.birth_limit:
+                            new_map[i][j] = 1
+                        else:
+                            new_map[i][j] = 0
+            return new_map
+
+        self.Map = [[0 for _ in range(const.MAP_WIDTH + 1)] for _ in range(const.MAP_HEIGHT + 1)]
+
+        for i, r in enumerate(self.Map):
+            for j, c in enumerate(r):
+                self.Map[i][j] = 1 if random.random() < self.chance else 0
+
+        for i in range(3):
+            self.Map = gen_step()
 
         for i in range(len(self.Map)):
             for j in range(len(self.Map[0])):
@@ -48,59 +97,7 @@ class AbstractMap(ABC):
                     self.Map[j][i] = const.FLOOR + self.num
                 else:
                     self.Map[j][i] = const.WALL + self.num
-    
-    def generate_map(self):
-        #Create a new map
-        self.Map = [[0 for _ in range(const.MAP_WIDTH + 1)] for _ in range(const.MAP_HEIGHT + 1)]
-        self.map_init()
-        # And now run the simulation for a set number of steps
-        for i in range(3):
-            self.Map = self.gen_step()
 
-    def map_init(self):
-        for i, r in enumerate(self.Map):
-            for j, c in enumerate(r):
-                self.Map[i][j] = 1 if random.random() < self.chance else 0
-
-    def gen_step(self):
-        new_map = self.Map.copy()
-        # Loop over each row and column of the map
-        for i, x in enumerate(self.Map):
-            for j, y in enumerate(x):
-                nbs = self.count_neighbours(i, j)
-                # The new value is based on our simulation rules
-                # First, if a cell is alive but has too few neighbours, kill it.
-                if self.Map[i][j]:
-                    if nbs < self.death_limit:
-                        new_map[i][j] = 0
-                    else:
-                        new_map[i][j] = 1
-                # Otherwise, if the cell is dead now, check if it has the right number of neighbours to be 'born'
-                else:
-                    if nbs > self.birth_limit:
-                        new_map[i][j] = 1
-                    else:
-                        new_map[i][j] = 0
-        return new_map
-
-    # Returns the number of cells in a ring around (x,y) that are alive.
-    def count_neighbours(self, x, y):
-        count = 0
-        for i in [-1, 0, 1]:
-            for j in [-1, 0, 1]:
-                neighbour_x = x + i
-                neighbour_y = y + j
-                # If we're looking at the middle point
-                if i == 0 and j == 0:
-                    # Do nothing, we don't want to add ourselves in!
-                    pass
-                # In case the index we're looking at it off the edge of the map
-                elif neighbour_x < 0 or neighbour_y < 0 or neighbour_y >= len(self.Map) or neighbour_x >= len(self.Map[0]):
-                    count += 1
-                # Otherwise, a normal check of the neighbour
-                elif self.Map[neighbour_x][neighbour_y]:
-                    count += 1
-        return count
 
     def get_map(self):
         return self.Map
@@ -204,7 +201,9 @@ class AbstractObjects(ABC):
                     obj.name = prop['name']
                     self.objects.append(obj)
 
-
+#####################################################################################################
+## Last map in the game
+#####################################################################################################
 class EndMap(MapFactory):
 
     yaml_tag = "!end_map"
@@ -245,7 +244,9 @@ class EndMap(MapFactory):
         def get_objects(self, _map):
             return self.objects
 
-
+#####################################################################################################
+## Map with randomly generated objects, ally and enemies
+#####################################################################################################
 class RandomMap(MapFactory):
     yaml_tag = "!random_map"
 
@@ -267,8 +268,7 @@ class RandomMap(MapFactory):
             return self.objects
 
 #####################################################################################################
-##
-##
+## Map without ally and enemies
 #####################################################################################################
 class EmptyMap(MapFactory):
 
@@ -295,8 +295,7 @@ class EmptyMap(MapFactory):
 
 
 #####################################################################################################
-##
-##
+## Map with exactly specified number of enemies and ally in yaml config
 #####################################################################################################
 class SpecialMap(MapFactory):
 
