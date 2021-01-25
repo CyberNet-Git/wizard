@@ -24,7 +24,7 @@ import abc
 import time
 import collections
 import math
-Их можно уставить так:
+Их можно установить так:
 pip install pygame
 pip install <далее по списку>
 
