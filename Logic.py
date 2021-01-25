@@ -41,7 +41,8 @@ class GameEngine:
             'add_gold': self.add_gold,
             'apply_blessing': self.apply_blessing,
             'remove_effect': self.remove_effect,
-            'restore_hp': self.restore_hp
+            'restore_hp': self.restore_hp,
+            'academic': self.teach_academic
         }
 
         object_list_descriptions = {
@@ -49,7 +50,8 @@ class GameEngine:
             'add_gold': 'Chest of gold. May be you have to be reacher or cured',
             'apply_blessing': 'Blessing adds you some strength and endurance. Be careful, you can become a berserk!',
             'remove_effect': 'Remove last applied effect.',
-            'restore_hp': 'Restores hero hit points (HP).'
+            'restore_hp': 'Restores hero hit points (HP).',
+            'academic': 'Graduate to academic. Increses intelligence.'
         }
 
         self.static = Service.object_list['objects']
@@ -82,8 +84,8 @@ class GameEngine:
                             SE.MinimapWindow((136, 96), pygame.SRCALPHA, (0, 0),
                                 SE.DecorWindow((800, 600), pygame.SRCALPHA, (0, 0),
                                     SE.ProgressBar((640, 600), pygame.SRCALPHA, (660, 30),
-                                        SE.InfoWindow((140, 440), pygame.SRCALPHA, (50, 50),
-                                            SE.HelpWindow((700, 500), pygame.SRCALPHA, (80, 100),
+                                        SE.InfoWindow((140, 440), pygame.SRCALPHA, (0, 0),
+                                            SE.HelpWindow((800, 600), pygame.SRCALPHA, (80, 100),
                                                 SE.BattleWindow((511, 358), pygame.SRCALPHA, (80, 100),
                                                     SE.DealWindow((511, 358), pygame.SRCALPHA, (0, 0),
                                                         SE.ScreenHandle(
@@ -328,3 +330,14 @@ class GameEngine:
         self.score += 50
         self.hero.hp = self.hero.max_hp
         self.notify("HP restored")
+
+    def teach_academic(self):
+        #TODO implement it
+        if self.hero.gold >= self.calc_price(self.teach_academic) and "base" in dir(self.hero):
+            self.hero.gold -= self.calc_price(self.teach_academic)
+            self.hero = Objects.Academic(self.hero)
+            self.notify("Academic graduated!")
+            self.score += 10
+        else:
+            self.notify('Not enougth gold')
+            self.score -= 0.5

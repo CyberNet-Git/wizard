@@ -28,7 +28,13 @@ ally:
     sprite: [NPC_3.png]
     anisprite: [Ally-3.png]
     action: restore_hp
-    min-count: 0
+    min-count: 1
+    max-count: 3
+  academic:
+    sprite: [NPC_3.png]
+    anisprite: [Ally-4.png]
+    action: academic
+    min-count: 1
     max-count: 3
 enemies:
   rat:
@@ -63,6 +69,22 @@ enemies:
     intelligence: 50
     luck: 5
     experience: 1000
+  ogre:
+    sprite: [dragon.png]
+    anisprite: [OgreAnim.png]
+    strength: 80
+    endurance: 30
+    intelligence: 1
+    luck: 2
+    experience: 1200
+  bloomer:
+    sprite: [dragon.png]
+    anisprite: [BloomerAnim.png]
+    strength: 60
+    endurance: 60
+    intelligence: 20
+    luck: 10
+    experience: 2000
 hero:
   Hero:
     anisprite: [Hero-0.png]

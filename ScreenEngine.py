@@ -228,10 +228,14 @@ class HelpWindow(ScreenHandle):
         self.data.append([" ←", "Move Left"])
         self.data.append([" ↑ ", "Move Top"])
         self.data.append([" ↓ ", "Move Bottom"])
-        self.data.append([" H ", "Show Help"])
+        self.data.append([" H ", "Show/hide Help"])
         self.data.append(["Num+", "Zoom +"])
         self.data.append(["Num-", "Zoom -"])
         self.data.append([" R ", "Restart Game"])
+        self.data.append(["CTRL", "Hold while moving"])
+        self.data.append(["", "to break the Wall"])
+        self.decor = Sprite.Sprite(os.path.join("texture","help.png"))
+
     # FIXME You can add some help information
 
     def connect_engine(self, engine):
@@ -239,21 +243,24 @@ class HelpWindow(ScreenHandle):
         super().connect_engine(engine)
 
     def draw(self, canvas):
-        alpha = 0
-        if self.engine.show_help:
-            alpha = 128
+        alpha = 200 if self.engine.show_help else 0
         self.fill((0, 0, 0, alpha))
-        size = self.get_size()
-        font1 = pygame.font.SysFont("courier", 24)
-        font2 = pygame.font.SysFont("serif", 24)
+
         if self.engine.show_help:
-            pygame.draw.lines(self, (255, 0, 0, 255), True, [
-                              (0, 0), (700, 0), (700, 500), (0, 500)], 5)
-            for i, text in enumerate(self.data):
-                self.blit(font1.render(text[0], True, ((128, 128, 255))),
-                          (50, 50 + 30 * i))
-                self.blit(font2.render(text[1], True, ((128, 128, 255))),
-                          (150, 50 + 30 * i))
+            self.blit(self.decor.get_sprite(), (0, 0))
+#            self.draw_content()
+            size = self.get_size()
+            font1 = pygame.font.SysFont("courier", 30)
+            font2 = pygame.font.SysFont("comicsansms", 26)
+            font1.set_bold(True)
+            font2.set_bold(True)
+            if self.engine.show_help:
+                for i, text in enumerate(self.data):
+                    self.blit(font1.render(text[0], True, (46, 25, 5)),
+                            (250, 120 + 35 * i))
+                    self.blit(font2.render(text[1], True, (46, 25, 5)),
+                            (350, 120 + 35 * i))
+
         super().draw(canvas)
 
 
