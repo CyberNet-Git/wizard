@@ -165,6 +165,10 @@ class Effect(Hero):
     def sprite(self):
         return self.base.sprite
 
+    @sprite.setter
+    def sprite(self, sprite):
+        self.base.sprite = sprite
+
     @abstractmethod
     def apply_effect(self):
         pass
