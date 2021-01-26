@@ -200,16 +200,19 @@ class SpriteProvider:
     def load_beauty_sprites(self):
         for t in self.objects: # [objects, enemies, ally]
             for name in self.objects[t]:
-                # t - type (ally, enemies) + objects[t] - Name + state(None for single image)
-                for i, filename in enumerate(self.objects[t][name]['anisprite']):
-                    s = AnimatedSprite(64, os.path.join("texture", t, filename ))
-                    try:
-                        self.sprites[self.NEW][t][name][i] = s
-                    except:
-                        self.sprites[self.NEW][t][name] = {i: s}
-                    # uncomment 2 following lines for turn on animation on objects
-                    #for s in self.sprites[self.NEW][t][name]:
-                    #    self.sprites[self.NEW][t][name][s].animation = AnimatedSprite.TIMER
+                try:
+                    # t - type (ally, enemies) + objects[t] - Name + state(None for single image)
+                    for i, filename in enumerate(self.objects[t][name]['anisprite']):
+                        s = AnimatedSprite(64, os.path.join("texture", t, filename ))
+                        try:
+                            self.sprites[self.NEW][t][name][i] = s
+                        except:
+                            self.sprites[self.NEW][t][name] = {i: s}
+                        # uncomment 2 following lines for turn on animation on objects
+                        #for s in self.sprites[self.NEW][t][name]:
+                        #    self.sprites[self.NEW][t][name][s].animation = AnimatedSprite.TIMER
+                except:
+                    self.look = self.OLD
 
         # load Map sprites
         self.map_sprites = SquareMultiSprite(64, os.path.join("texture", "map", "map.png" ))
